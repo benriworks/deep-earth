@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 地球地下シミュレータ (Earth Underground Simulator)
 
-## Getting Started
+地球の内部構造を科学的に正確かつ直感的に体験できる教育用 3D Web アプリケーション。
+[要件定義書](./earth-underground-sim_requirements_v1.1.md) v1.1 に基づいて実装。
 
-First, run the development server:
+## 機能
+
+- **3D 地球レンダリング** — マウス/タッチで回転・ズーム・パン(OrbitControls)
+- **断面カットアウェイ** — ハーフ/クォーターカットで内部の層構造を露出、カット角度も変更可能
+- **レイヤー構造表示** — 地殻・上部マントル・遷移層・下部マントル・外核・内核を正しい半径比で表示。層ごとの表示切替・不透明度調整・選択して物性値(深度/密度/温度/地震波速度)を確認
+- **地震波シミュレーション** — 震源(深さ・位置)を設定して P 波・S 波の伝播を再生。液体の外核で S 波が消える「S 波シャドウゾーン」を観察できる。再生/一時停止/スクラブ/速度調整対応
+- **マントル対流** — 対流セルの上昇流(赤)・下降流(青)をパーティクルで可視化
+- **仮想プローブ** — 地表の任意地点から地心へ降下し、現在深度の層と物性値をリアルタイム表示
+
+## 技術スタック
+
+| 分類 | 技術 |
+|---|---|
+| フレームワーク | Next.js 15 (App Router) + TypeScript (strict) |
+| 3D | Three.js + @react-three/fiber + @react-three/drei |
+| 状態管理 | Zustand |
+| UI | Tailwind CSS + shadcn/ui |
+| テスト | Vitest |
+
+## 開発
+
+Node.js 20+ と pnpm が必要。
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev        # 開発サーバー (http://localhost:3000)
+pnpm test       # ユニットテスト
+pnpm lint       # ESLint
+pnpm build      # 本番ビルド
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## デプロイ
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Vercel を想定。GitHub 連携またはローカルから:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm dlx vercel deploy
+```
 
-## Learn More
+## 設計メモ
 
-To learn more about Next.js, take a look at the following resources:
+- **60FPS 維持**: 毎フレーム変化する値(プローブ深度・波面時刻)は React state に載せず、`useFrame` 内で Zustand の `getState()` を直接参照。UI への反映は約 10Hz に間引き
+- **断面カット**: `THREE.Plane` の clippingPlanes(クォーターは 2 枚 + `clipIntersection`)+ 層ごとの円環キャップメッシュで切り口を表現
+- **地震波**: PREM 近似の半径依存速度 v(r) を区分積分した波面到達テーブルを震源設定時に事前計算(180 レイ、2 波種で 150ms 未満のため Web Worker は不使用)。レイ経路は直線近似
+- **科学データ**: PREM(予備的基準地球モデル)の境界値を層内線形補間した近似。教育目的の簡略化・誇張(プローブ降下速度、対流速度など)は UI 上で注記
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 科学的な簡略化について
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+本シミュレータは教育目的であり、以下の簡略化を含みます:
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 層内の物性値は PREM 境界値の線形補間(実際の PREM は深度の多項式)
+- 地震波のレイ経路は直線(スネルの法則による屈曲は近似しない)
+- プローブの降下速度・マントル対流の速度は視覚化のため大幅に誇張
+- 地殻は実スケールでは半径比 0.5% と薄く、図ではほぼ見えない
