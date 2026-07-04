@@ -3,8 +3,11 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
+import type { ThreeEvent } from '@react-three/fiber';
 import { EARTH_LAYERS, toSceneRadius } from '@/lib/earthData';
 import { useLayerStore } from '@/stores/useLayerStore';
+import { useProbeStore } from '@/stores/useProbeStore';
+import { useUIStore } from '@/stores/useUIStore';
 import { useCutPlanes } from './useCutPlanes';
 import type { EarthLayer } from '@/types/earth';
 
@@ -75,8 +78,23 @@ function LayerShell({
 }) {
   const radius = toSceneRadius(layer.radiusOuterKm);
   const transparent = opacity < 1;
+
+  // 投入モード中は地表クリックでプローブ投入、通常時は層の選択。
+  // クリッピングで消えた部分もレイキャストに当たる制限があるため、
+  // 層選択の主導線は UI パネル側とし、3D クリックは補助とする。
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    const probe = useProbeStore.getState();
+    if (probe.armed) {
+      const dir = e.point.clone().normalize();
+      probe.launch([dir.x, dir.y, dir.z]);
+    } else {
+      useUIStore.getState().setSelectedLayer(layer.id);
+    }
+  };
+
   return (
-    <mesh>
+    <mesh onClick={handleClick}>
       <sphereGeometry args={[radius, 64, 32]} />
       <meshStandardMaterial
         color={layer.color}

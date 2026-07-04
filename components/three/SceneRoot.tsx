@@ -3,6 +3,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
 import { EarthLayers } from './EarthLayers';
+import { Probe } from './Probe';
 
 export default function SceneRoot() {
   return (
@@ -15,6 +16,7 @@ export default function SceneRoot() {
         <directionalLight position={[5, 3, 5]} intensity={1.2} />
         <directionalLight position={[-4, -2, -4]} intensity={0.3} />
         <EarthLayers />
+        <Probe />
         <OrbitControls makeDefault enableDamping minDistance={1.3} maxDistance={6} />
         {process.env.NODE_ENV === 'development' && <Stats />}
       </Canvas>
