@@ -16,10 +16,13 @@ interface LayerStore {
   /** カット面の向き(Y軸まわりの回転角、度) */
   cutAngleDeg: number;
   showLabels: boolean;
+  /** マントル対流パーティクルの表示 */
+  showConvection: boolean;
   layerView: Record<LayerId, LayerView>;
   setCutMode: (mode: CutMode) => void;
   setCutAngle: (deg: number) => void;
   setShowLabels: (show: boolean) => void;
+  setShowConvection: (show: boolean) => void;
   setLayerVisible: (id: LayerId, visible: boolean) => void;
   setLayerOpacity: (id: LayerId, opacity: number) => void;
 }
@@ -32,10 +35,12 @@ export const useLayerStore = create<LayerStore>((set) => ({
   cutMode: 'quarter',
   cutAngleDeg: 0,
   showLabels: true,
+  showConvection: false,
   layerView: initialLayerView,
   setCutMode: (cutMode) => set({ cutMode }),
   setCutAngle: (cutAngleDeg) => set({ cutAngleDeg }),
   setShowLabels: (showLabels) => set({ showLabels }),
+  setShowConvection: (showConvection) => set({ showConvection }),
   setLayerVisible: (id, visible) =>
     set((s) => ({
       layerView: { ...s.layerView, [id]: { ...s.layerView[id], visible } },
