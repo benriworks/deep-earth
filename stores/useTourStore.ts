@@ -42,6 +42,7 @@ export const TOUR_STEPS: TourStep[] = [
       layer.setCutMode('quarter');
       layer.setShowLabels(true);
       layer.setShowConvection(false);
+      layer.setExaggerateThinLayers(false);
       useSimStore.getState().stop();
       useProbeStore.getState().reset();
       useUIStore.getState().setSelectedLayer(null);
@@ -50,7 +51,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'crust',
     title: '② 地殻はりんごの皮より薄い',
-    body: '私たちが立っている地殻は、厚さ約35km。地球の半径6371kmに対してわずか0.5%で、この図ではほとんど見えない細い線です。人類が掘った最も深い穴(約12km)でも、地殻すら貫通していません。\n\nでは、誰も行けない地球の中身を、人類はどうやって知ったのでしょうか?',
+    body: '私たちが立っている地殻は、厚さ約35km。地球の半径6371kmに対してわずか0.5%で、この図ではほとんど見えない細い線です(パネルの「地殻を誇張表示」で見やすくできます)。人類が掘った最も深い穴(約12km)でも、地殻すら貫通していません。\n\nでは、誰も行けない地球の中身を、人類はどうやって知ったのでしょうか?',
     apply: () => {
       useUIStore.getState().setSelectedLayer('crust');
     },
