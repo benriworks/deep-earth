@@ -1,0 +1,4 @@
+node_modules
+.next
+pnpm-lock.yaml
+earth-underground-sim_requirements_v1.1.md
