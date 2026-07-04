@@ -8,7 +8,7 @@ export default function Home() {
       <p className="text-muted-foreground max-w-md">
         地球内部の構造をリアルタイムに可視化・操作できるインタラクティブシミュレータです。
       </p>
-      <Button size="lg" render={<Link href="/simulator" />}>
+      <Button size="lg" nativeButton={false} render={<Link href="/simulator" />}>
         シミュレータを開く
       </Button>
     </div>
