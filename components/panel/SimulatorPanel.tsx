@@ -7,6 +7,7 @@ import ProbePanel from '@/components/panel/ProbePanel';
 import ProfileGraph from '@/components/panel/ProfileGraph';
 import SeismicPanel from '@/components/panel/SeismicPanel';
 import ObserverPanel from '@/components/panel/ObserverPanel';
+import QuizPanel from '@/components/panel/QuizPanel';
 import ScienceNote from '@/components/panel/ScienceNote';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -41,6 +42,9 @@ export default function SimulatorPanel() {
       </Section>
       <Section title="観測記録">
         <ObserverPanel />
+      </Section>
+      <Section title="クイズ">
+        <QuizPanel />
       </Section>
       <Section title="注記">
         <ScienceNote />
