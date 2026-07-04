@@ -52,6 +52,7 @@ export default function SeismicPanel() {
           <span className="tabular-nums">{Math.round(sourceDepthKm).toLocaleString()} km</span>
         </div>
         <Slider
+          aria-label="震源の深さ"
           value={sourceDepthKm}
           min={0}
           max={700}
@@ -66,6 +67,7 @@ export default function SeismicPanel() {
           <span className="tabular-nums">{Math.round(sourceAngleDeg)}°</span>
         </div>
         <Slider
+          aria-label="震源の位置"
           value={sourceAngleDeg}
           min={0}
           max={360}
@@ -82,10 +84,11 @@ export default function SeismicPanel() {
         <>
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">経過時間</span>
-            <span className="tabular-nums">{formatElapsed(simTimeSec)}</span>
+            <span className="tabular-nums" aria-live="polite">{formatElapsed(simTimeSec)}</span>
           </div>
 
           <Slider
+            aria-label="経過時間"
             value={simTimeSec}
             min={0}
             max={maxTimeSec}
@@ -113,6 +116,7 @@ export default function SeismicPanel() {
               <span className="tabular-nums">{Math.round(timeScale).toLocaleString()}倍</span>
             </div>
             <Slider
+              aria-label="再生速度"
               value={timeScale}
               min={30}
               max={600}
@@ -128,14 +132,14 @@ export default function SeismicPanel() {
           <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: '#38bdf8' }} />
           P波表示
         </span>
-        <Switch checked={showP} onCheckedChange={setShowP} />
+        <Switch aria-label="P波表示" checked={showP} onCheckedChange={setShowP} />
       </div>
       <div className="flex items-center justify-between text-xs">
         <span className="flex items-center gap-1.5 text-muted-foreground">
           <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: '#fb7185' }} />
           S波表示
         </span>
-        <Switch checked={showS} onCheckedChange={setShowS} />
+        <Switch aria-label="S波表示" checked={showS} onCheckedChange={setShowS} />
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: '#fbbf24' }} />

@@ -44,6 +44,7 @@ export default function LayerList() {
               <span className="flex-1 truncate text-sm">{layer.nameJa}</span>
               <Switch
                 size="sm"
+                aria-label={`${layer.nameJa}を表示`}
                 checked={view.visible}
                 onCheckedChange={(visible) => setLayerVisible(layer.id, visible)}
                 onClick={(e) => e.stopPropagation()}
@@ -55,6 +56,7 @@ export default function LayerList() {
             >
               <Slider
                 className="flex-1"
+                aria-label={`${layer.nameJa}の不透明度`}
                 value={Math.round(view.opacity * 100)}
                 min={0}
                 max={100}

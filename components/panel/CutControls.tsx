@@ -45,6 +45,7 @@ export default function CutControls() {
           <span className="tabular-nums">{Math.round(cutAngleDeg)}°</span>
         </div>
         <Slider
+          aria-label="カット角度"
           value={cutAngleDeg}
           min={0}
           max={360}
@@ -56,13 +57,13 @@ export default function CutControls() {
 
       <div className="flex items-center justify-between text-xs">
         <span className="text-muted-foreground">ラベル表示</span>
-        <Switch checked={showLabels} onCheckedChange={setShowLabels} />
+        <Switch aria-label="ラベル表示" checked={showLabels} onCheckedChange={setShowLabels} />
       </div>
 
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">マントル対流</span>
-          <Switch checked={showConvection} onCheckedChange={setShowConvection} />
+          <Switch aria-label="マントル対流" checked={showConvection} onCheckedChange={setShowConvection} />
         </div>
         <p className="text-xs leading-relaxed text-muted-foreground">
           断面にマントル対流の流れを表示します(速度は大幅に誇張)。上昇流=赤、下降流=青。

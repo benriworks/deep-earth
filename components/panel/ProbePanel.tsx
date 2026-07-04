@@ -39,12 +39,12 @@ export default function ProbePanel() {
             ONにすると地球表面をクリックしてプローブを投入できます
           </span>
         </div>
-        <Switch checked={armed} onCheckedChange={setArmed} />
+        <Switch aria-label="投入モード" checked={armed} onCheckedChange={setArmed} />
       </div>
 
       <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
         <span className="text-muted-foreground">状態</span>
-        <span className="text-right">{STATUS_LABEL[status]}</span>
+        <span className="text-right" aria-live="polite">{STATUS_LABEL[status]}</span>
 
         <span className="text-muted-foreground">現在深度</span>
         <span className="text-right tabular-nums">{Math.round(depthKm).toLocaleString()} km</span>
@@ -71,6 +71,7 @@ export default function ProbePanel() {
           <span className="tabular-nums">{speedKmPerSec.toLocaleString()} km/s</span>
         </div>
         <Slider
+          aria-label="降下速度"
           value={speedKmPerSec}
           min={50}
           max={2000}
