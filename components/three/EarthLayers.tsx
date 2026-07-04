@@ -169,20 +169,35 @@ function LayerCaps({
   );
 }
 
+/** 外側の薄い3層はラベルが重なるため、開口方向と直交する向きに互い違いにずらす */
+const LABEL_PERP_OFFSET: Partial<Record<EarthLayer['id'], number>> = {
+  crust: 0.14,
+  upperMantle: 0,
+  transitionZone: -0.14,
+};
+
+const UP = new THREE.Vector3(0, 1, 0);
+
 /** 除去された空間に、各層の中間半径位置でラベルを浮かべる */
 function LayerLabels({ openDirection }: { openDirection: THREE.Vector3 }) {
+  // カット面は鉛直なので openDirection は水平。UP との外積で水平な直交方向を得る
+  const perp = new THREE.Vector3().crossVectors(openDirection, UP).normalize();
   return (
     <>
       {EARTH_LAYERS.map((layer) => {
         const midRadius =
           (toSceneRadius(layer.radiusInnerKm) + toSceneRadius(layer.radiusOuterKm)) / 2;
-        const pos = openDirection.clone().multiplyScalar(Math.max(midRadius, 0.08));
+        const pos = openDirection
+          .clone()
+          .multiplyScalar(Math.max(midRadius, 0.08))
+          .addScaledVector(perp, LABEL_PERP_OFFSET[layer.id] ?? 0);
         return (
           <Html
             key={layer.id}
             position={[pos.x, pos.y, pos.z]}
             center
             distanceFactor={3.2}
+            zIndexRange={[40, 0]}
             className="pointer-events-none select-none"
           >
             <div className="whitespace-nowrap rounded bg-black/70 px-2 py-0.5 text-xs text-white">

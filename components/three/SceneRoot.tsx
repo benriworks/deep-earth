@@ -1,13 +1,32 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
 import { EarthLayers } from './EarthLayers';
 import { Probe } from './Probe';
 import { SeismicWaves } from './SeismicWaves';
 import { MantleConvection } from './MantleConvection';
+import { useLayerStore } from '@/stores/useLayerStore';
+import { useProbeStore } from '@/stores/useProbeStore';
+import { useSimStore } from '@/stores/useSimStore';
+import { useUIStore } from '@/stores/useUIStore';
 
 export default function SceneRoot() {
+  // 開発時のみ、コンソールからの動作確認用にストアを公開する
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      Object.assign(window, {
+        __stores: {
+          sim: useSimStore,
+          layer: useLayerStore,
+          probe: useProbeStore,
+          ui: useUIStore,
+        },
+      });
+    }
+  }, []);
+
   return (
     <div className="h-dvh w-full bg-slate-950">
       <Canvas
