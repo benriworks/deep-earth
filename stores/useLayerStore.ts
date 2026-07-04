@@ -18,11 +18,14 @@ interface LayerStore {
   showLabels: boolean;
   /** マントル対流パーティクルの表示 */
   showConvection: boolean;
+  /** 薄い地殻を視認できる厚さに誇張表示する(データは実スケールのまま) */
+  exaggerateThinLayers: boolean;
   layerView: Record<LayerId, LayerView>;
   setCutMode: (mode: CutMode) => void;
   setCutAngle: (deg: number) => void;
   setShowLabels: (show: boolean) => void;
   setShowConvection: (show: boolean) => void;
+  setExaggerateThinLayers: (exaggerate: boolean) => void;
   setLayerVisible: (id: LayerId, visible: boolean) => void;
   setLayerOpacity: (id: LayerId, opacity: number) => void;
 }
@@ -36,11 +39,13 @@ export const useLayerStore = create<LayerStore>((set) => ({
   cutAngleDeg: 0,
   showLabels: true,
   showConvection: false,
+  exaggerateThinLayers: false,
   layerView: initialLayerView,
   setCutMode: (cutMode) => set({ cutMode }),
   setCutAngle: (cutAngleDeg) => set({ cutAngleDeg }),
   setShowLabels: (showLabels) => set({ showLabels }),
   setShowConvection: (showConvection) => set({ showConvection }),
+  setExaggerateThinLayers: (exaggerateThinLayers) => set({ exaggerateThinLayers }),
   setLayerVisible: (id, visible) =>
     set((s) => ({
       layerView: { ...s.layerView, [id]: { ...s.layerView[id], visible } },

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   EARTH_LAYERS,
   EARTH_RADIUS_KM,
+  EXAGGERATED_CRUST_BOTTOM_KM,
+  displayRadiiKm,
   earthProfile,
   getLayer,
   radiusToDepth,
@@ -112,5 +114,36 @@ describe('座標ヘルパー', () => {
     expect(radiusToDepth(0)).toBe(EARTH_RADIUS_KM);
     expect(toSceneRadius(EARTH_RADIUS_KM)).toBe(1);
     expect(toSceneRadius(3480)).toBeCloseTo(0.5462, 3);
+  });
+});
+
+describe('displayRadiiKm(誇張表示)', () => {
+  it('誇張OFFでは実半径をそのまま返す', () => {
+    for (const layer of EARTH_LAYERS) {
+      expect(displayRadiiKm(layer, false)).toEqual({
+        innerKm: layer.radiusInnerKm,
+        outerKm: layer.radiusOuterKm,
+      });
+    }
+  });
+
+  it('誇張ONでは地殻下端と上部マントル上端が同じ見かけ半径で接する', () => {
+    const crust = displayRadiiKm(getLayer('crust'), true);
+    const upper = displayRadiiKm(getLayer('upperMantle'), true);
+    expect(crust.innerKm).toBe(EARTH_RADIUS_KM - EXAGGERATED_CRUST_BOTTOM_KM);
+    expect(upper.outerKm).toBe(crust.innerKm);
+    // 地表と上部マントル下端は実スケールのまま
+    expect(crust.outerKm).toBe(EARTH_RADIUS_KM);
+    expect(upper.innerKm).toBe(getLayer('upperMantle').radiusInnerKm);
+  });
+
+  it('誇張ONでも地殻・上部マントル以外の層は不変', () => {
+    for (const id of ['transitionZone', 'lowerMantle', 'outerCore', 'innerCore'] as const) {
+      const layer = getLayer(id);
+      expect(displayRadiiKm(layer, true)).toEqual({
+        innerKm: layer.radiusInnerKm,
+        outerKm: layer.radiusOuterKm,
+      });
+    }
   });
 });

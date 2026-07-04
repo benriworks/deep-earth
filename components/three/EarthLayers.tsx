@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
-import { EARTH_LAYERS, toSceneRadius } from '@/lib/earthData';
+import { EARTH_LAYERS, displayRadiiKm, toSceneRadius } from '@/lib/earthData';
 import { useLayerStore } from '@/stores/useLayerStore';
 import { useProbeStore } from '@/stores/useProbeStore';
 import { useUIStore } from '@/stores/useUIStore';
@@ -21,6 +21,7 @@ export function EarthLayers() {
   const cutAngleDeg = useLayerStore((s) => s.cutAngleDeg);
   const showLabels = useLayerStore((s) => s.showLabels);
   const layerView = useLayerStore((s) => s.layerView);
+  const exaggerate = useLayerStore((s) => s.exaggerateThinLayers);
 
   const { planes, clipIntersection, openDirection } = useCutPlanes(cutMode, cutAngleDeg);
   const cutAngleRad = (cutAngleDeg * Math.PI) / 180;
@@ -37,6 +38,7 @@ export function EarthLayers() {
             opacity={view.opacity}
             planes={planes}
             clipIntersection={clipIntersection}
+            exaggerate={exaggerate}
           />
         );
       })}
@@ -52,6 +54,7 @@ export function EarthLayers() {
                 layer={layer}
                 opacity={view.opacity}
                 quarter={cutMode === 'quarter'}
+                exaggerate={exaggerate}
               />
             );
           })}
@@ -59,7 +62,7 @@ export function EarthLayers() {
       )}
 
       {showLabels && cutMode !== 'none' && (
-        <LayerLabels openDirection={openDirection} />
+        <LayerLabels openDirection={openDirection} exaggerate={exaggerate} />
       )}
     </group>
   );
@@ -70,13 +73,15 @@ function LayerShell({
   opacity,
   planes,
   clipIntersection,
+  exaggerate,
 }: {
   layer: EarthLayer;
   opacity: number;
   planes: THREE.Plane[];
   clipIntersection: boolean;
+  exaggerate: boolean;
 }) {
-  const radius = toSceneRadius(layer.radiusOuterKm);
+  const radius = toSceneRadius(displayRadiiKm(layer, exaggerate).outerKm);
   const transparent = opacity < 1;
 
   // 投入モード中は地表クリックでプローブ投入、通常時は層の選択。
@@ -120,13 +125,16 @@ function LayerCaps({
   layer,
   opacity,
   quarter,
+  exaggerate,
 }: {
   layer: EarthLayer;
   opacity: number;
   quarter: boolean;
+  exaggerate: boolean;
 }) {
-  const inner = toSceneRadius(layer.radiusInnerKm);
-  const outer = toSceneRadius(layer.radiusOuterKm);
+  const radii = displayRadiiKm(layer, exaggerate);
+  const inner = toSceneRadius(radii.innerKm);
+  const outer = toSceneRadius(radii.outerKm);
   const capColor = useMemo(
     () => new THREE.Color(layer.color).multiplyScalar(0.8),
     [layer.color],
@@ -179,14 +187,21 @@ const LABEL_PERP_OFFSET: Partial<Record<EarthLayer['id'], number>> = {
 const UP = new THREE.Vector3(0, 1, 0);
 
 /** 除去された空間に、各層の中間半径位置でラベルを浮かべる */
-function LayerLabels({ openDirection }: { openDirection: THREE.Vector3 }) {
+function LayerLabels({
+  openDirection,
+  exaggerate,
+}: {
+  openDirection: THREE.Vector3;
+  exaggerate: boolean;
+}) {
   // カット面は鉛直なので openDirection は水平。UP との外積で水平な直交方向を得る
   const perp = new THREE.Vector3().crossVectors(openDirection, UP).normalize();
   return (
     <>
       {EARTH_LAYERS.map((layer) => {
+        const radii = displayRadiiKm(layer, exaggerate);
         const midRadius =
-          (toSceneRadius(layer.radiusInnerKm) + toSceneRadius(layer.radiusOuterKm)) / 2;
+          (toSceneRadius(radii.innerKm) + toSceneRadius(radii.outerKm)) / 2;
         const pos = openDirection
           .clone()
           .multiplyScalar(Math.max(midRadius, 0.08))

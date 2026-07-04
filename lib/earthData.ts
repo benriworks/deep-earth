@@ -156,6 +156,29 @@ export function radiusToDepth(radiusKm: number): number {
   return EARTH_RADIUS_KM - radiusKm;
 }
 
+/** 誇張表示時の地殻下端の見かけ深度 (km)。実際の地殻は約35km */
+export const EXAGGERATED_CRUST_BOTTOM_KM = 250;
+
+/**
+ * 表示用の層半径。exaggerate 時は薄すぎて見えない地殻を視認できる厚さに誇張する
+ * (地殻の下端を見かけ上 250km に。上部マントルの上端がその分だけ縮む)。
+ * データ(物性値・シミュレーション)は実スケールのまま、見た目だけの誇張。
+ */
+export function displayRadiiKm(
+  layer: EarthLayer,
+  exaggerate: boolean,
+): { innerKm: number; outerKm: number } {
+  if (!exaggerate) return { innerKm: layer.radiusInnerKm, outerKm: layer.radiusOuterKm };
+  const crustBottomRadius = EARTH_RADIUS_KM - EXAGGERATED_CRUST_BOTTOM_KM;
+  if (layer.id === 'crust') {
+    return { innerKm: crustBottomRadius, outerKm: layer.radiusOuterKm };
+  }
+  if (layer.id === 'upperMantle') {
+    return { innerKm: layer.radiusInnerKm, outerKm: crustBottomRadius };
+  }
+  return { innerKm: layer.radiusInnerKm, outerKm: layer.radiusOuterKm };
+}
+
 /** 3D シーンでは地球半径を 1 に正規化する */
 export function toSceneRadius(radiusKm: number): number {
   return radiusKm / EARTH_RADIUS_KM;
