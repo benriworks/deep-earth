@@ -1,6 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
+import type { ObserverArrival, ShadowZones } from '@/lib/seismic';
 
 /**
  * 地震波シミュレーションの再生制御。
@@ -25,6 +26,14 @@ interface SimStore {
   showS: boolean;
   /** スクラブ操作の通知カウンタ(3D 側が subscribe する) */
   scrubVersion: number;
+  /** 観測点の震央距離 (度)。断面円周上に配置される */
+  observerDistsDeg: number[];
+  /** 観測点表示の ON/OFF */
+  showObservers: boolean;
+  /** 各観測点の P/S 初動走時(震源設定時に事前計算テーブルから導出) */
+  arrivals: ObserverArrival[] | null;
+  /** シャドウゾーン(観測データから求めた値) */
+  shadowZones: ShadowZones | null;
   start: () => void;
   play: () => void;
   pause: () => void;
@@ -34,8 +43,11 @@ interface SimStore {
   setSource: (depthKm: number, angleDeg: number) => void;
   setShowP: (show: boolean) => void;
   setShowS: (show: boolean) => void;
+  setShowObservers: (show: boolean) => void;
   /** 3D 側からの間引き時刻更新(UI から呼ばない) */
   _setSimTime: (sec: number) => void;
+  /** 3D 側が波面テーブル計算時に走時解析結果を共有する(UI から呼ばない) */
+  _setAnalysis: (arrivals: ObserverArrival[] | null, shadowZones: ShadowZones | null) => void;
 }
 
 export const useSimStore = create<SimStore>((set) => ({
@@ -49,6 +61,10 @@ export const useSimStore = create<SimStore>((set) => ({
   showP: true,
   showS: true,
   scrubVersion: 0,
+  observerDistsDeg: [15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180],
+  showObservers: true,
+  arrivals: null,
+  shadowZones: null,
   start: () =>
     set((s) => ({
       active: true,
@@ -74,5 +90,7 @@ export const useSimStore = create<SimStore>((set) => ({
   setSource: (sourceDepthKm, sourceAngleDeg) => set({ sourceDepthKm, sourceAngleDeg }),
   setShowP: (showP) => set({ showP }),
   setShowS: (showS) => set({ showS }),
+  setShowObservers: (showObservers) => set({ showObservers }),
   _setSimTime: (simTimeSec) => set({ simTimeSec }),
+  _setAnalysis: (arrivals, shadowZones) => set({ arrivals, shadowZones }),
 }));

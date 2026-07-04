@@ -7,6 +7,8 @@ import { EarthLayers } from './EarthLayers';
 import { Probe } from './Probe';
 import { SeismicWaves } from './SeismicWaves';
 import { MantleConvection } from './MantleConvection';
+import { Observers } from './Observers';
+import { ShadowArcs } from './ShadowArcs';
 import { useLayerStore } from '@/stores/useLayerStore';
 import { useProbeStore } from '@/stores/useProbeStore';
 import { useSimStore } from '@/stores/useSimStore';
@@ -39,6 +41,8 @@ export default function SceneRoot() {
         <EarthLayers />
         <Probe />
         <SeismicWaves />
+        <Observers />
+        <ShadowArcs />
         <MantleConvection />
         <OrbitControls makeDefault enableDamping minDistance={1.3} maxDistance={6} />
         {process.env.NODE_ENV === 'development' && <Stats />}

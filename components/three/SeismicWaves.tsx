@@ -4,13 +4,17 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { earthProfile, toSceneRadius, EARTH_RADIUS_KM } from '@/lib/earthData';
-import { computeWavefrontTable, type WavefrontTable } from '@/lib/seismic';
+import {
+  computeArrivals,
+  computeWavefrontTable,
+  findShadowZones,
+  type WavefrontTable,
+} from '@/lib/seismic';
 import { useLayerStore } from '@/stores/useLayerStore';
 import { useSimStore } from '@/stores/useSimStore';
+import { to3D } from './cutPlane';
 
 const HUD_UPDATE_INTERVAL = 0.1;
-/** カット面からの浮かせ量(キャップとの z-fighting 回避) */
-const PLANE_OFFSET = 0.004;
 
 /**
  * P/S 波面をカット断面上の点群として描画する。
@@ -37,6 +41,19 @@ export function SeismicWaves() {
       S: computeWavefrontTable(earthProfile, source, 'S'),
     };
   }, [active, source]);
+
+  // 走時解析(観測点の初動・シャドウゾーン)をパネル用にストアへ共有する
+  useEffect(() => {
+    const { observerDistsDeg, _setAnalysis } = useSimStore.getState();
+    if (!tables) {
+      _setAnalysis(null, null);
+      return;
+    }
+    _setAnalysis(
+      computeArrivals(tables.P, tables.S, observerDistsDeg),
+      findShadowZones(tables.P, tables.S),
+    );
+  }, [tables]);
 
   const timeRef = useRef(0);
   const hudTimerRef = useRef(0);
@@ -81,14 +98,6 @@ export function SeismicWaves() {
       <SourceMarker source={source} cutMode={cutMode} />
     </group>
   );
-}
-
-/** 2D 断面座標 (km) をカット面上の 3D シーン座標へ変換する */
-function to3D(xKm: number, yKm: number, cutMode: 'half' | 'quarter'): [number, number, number] {
-  const x = xKm / EARTH_RADIUS_KM;
-  const y = yKm / EARTH_RADIUS_KM;
-  if (cutMode === 'quarter') return [x, y, PLANE_OFFSET]; // z=0 面
-  return [PLANE_OFFSET, y, x]; // x=0 面
 }
 
 function WavefrontPoints({
