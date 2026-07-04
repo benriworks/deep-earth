@@ -47,6 +47,10 @@ export interface EarthProfile {
   vpAt(depthKm: number): number;
   /** S波速度 (km/s)。液体層では 0 */
   vsAt(depthKm: number): number;
+  /** P波速度の深度勾配 (km/s / km)。層内線形補間なので層ごとに一定 */
+  vpGradientAt(depthKm: number): number;
+  /** S波速度の深度勾配 (km/s / km) */
+  vsGradientAt(depthKm: number): number;
   densityAt(depthKm: number): number;
   tempAt(depthKm: number): number;
   layerAt(depthKm: number): EarthLayer;

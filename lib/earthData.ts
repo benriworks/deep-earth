@@ -131,11 +131,21 @@ function interpolate(depthKm: number, pick: (l: EarthLayer) => [number, number])
   return top + (bottom - top) * t;
 }
 
+/** 深度に対する勾配 (値/km)。層内線形なので層ごとに一定 */
+function gradient(depthKm: number, pick: (l: EarthLayer) => [number, number]): number {
+  const layer = layerAt(clampDepth(depthKm));
+  const [top, bottom] = pick(layer);
+  const span = layer.depthBottomKm - layer.depthTopKm;
+  return span > 0 ? (bottom - top) / span : 0;
+}
+
 export const earthProfile: EarthProfile = {
   earthRadiusKm: EARTH_RADIUS_KM,
   layers: EARTH_LAYERS,
   vpAt: (d) => interpolate(d, (l) => l.vpKmS),
   vsAt: (d) => interpolate(d, (l) => l.vsKmS),
+  vpGradientAt: (d) => gradient(d, (l) => l.vpKmS),
+  vsGradientAt: (d) => gradient(d, (l) => l.vsKmS),
   densityAt: (d) => interpolate(d, (l) => l.densityGCm3),
   tempAt: (d) => interpolate(d, (l) => l.tempK),
   layerAt,
