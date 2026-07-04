@@ -4,7 +4,9 @@ import CutControls from '@/components/panel/CutControls';
 import LayerList from '@/components/panel/LayerList';
 import LayerInfo from '@/components/panel/LayerInfo';
 import ProbePanel from '@/components/panel/ProbePanel';
+import ProfileGraph from '@/components/panel/ProfileGraph';
 import SeismicPanel from '@/components/panel/SeismicPanel';
+import ObserverPanel from '@/components/panel/ObserverPanel';
 import ScienceNote from '@/components/panel/ScienceNote';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -31,8 +33,14 @@ export default function SimulatorPanel() {
       <Section title="プローブ">
         <ProbePanel />
       </Section>
+      <Section title="深度プロファイル">
+        <ProfileGraph />
+      </Section>
       <Section title="地震波">
         <SeismicPanel />
+      </Section>
+      <Section title="観測記録">
+        <ObserverPanel />
       </Section>
       <Section title="注記">
         <ScienceNote />
