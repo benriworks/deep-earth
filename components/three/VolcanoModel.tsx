@@ -1,6 +1,6 @@
 'use client';
 
-import { useGLTF } from '@react-three/drei';
+import { Detailed, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { type RefObject, useMemo, useRef } from 'react';
 import * as THREE from 'three';
@@ -12,6 +12,8 @@ type VolcanoModelProps = {
   visualRef: RefObject<VolcanoVisualState>;
   height: number;
   radius: number;
+  /** 指定時はカメラ距離で low/mid/high を切り替える(Phase D) */
+  lodUrls?: { low: string; mid: string; high: string };
 };
 
 type ControlledMaterial = {
@@ -20,12 +22,34 @@ type ControlledMaterial = {
 };
 
 /**
- * Blender 製 GLB 火山(public/models/volcano/volcano_v001.glb)。
+ * Blender 製 GLB 火山。lodUrls 指定時は drei の Detailed でカメラ距離に応じて
+ * low/mid/high を切り替える(Phase D)。
+ */
+export function VolcanoModel({ url, visualRef, height, radius, lodUrls }: VolcanoModelProps) {
+  if (lodUrls) {
+    return (
+      <Detailed distances={[0, 2.4, 4.5]}>
+        <VolcanoGLTF url={lodUrls.high} visualRef={visualRef} height={height} radius={radius} />
+        <VolcanoGLTF url={lodUrls.mid} visualRef={visualRef} height={height} radius={radius} />
+        <VolcanoGLTF url={lodUrls.low} visualRef={visualRef} height={height} radius={radius} />
+      </Detailed>
+    );
+  }
+  return <VolcanoGLTF url={url} visualRef={visualRef} height={height} radius={radius} />;
+}
+
+/**
+ * 単一 GLB の読み込みと発光制御。
  * scene / geometry / material をすべて clone し、同じ GLB を複数配置しても
  * 発光強度が共有されないようにする(docs 05 レビュー観点)。
  * 発光対象は material / object 名の 'crater' / 'inner' / 'lava' で検出する。
  */
-export function VolcanoModel({ url, visualRef, height, radius }: VolcanoModelProps) {
+function VolcanoGLTF({
+  url,
+  visualRef,
+  height,
+  radius,
+}: Omit<VolcanoModelProps, 'lodUrls'>) {
   const gltf = useGLTF(url);
   const controlledMaterialsRef = useRef<ControlledMaterial[]>([]);
 
@@ -76,3 +100,8 @@ export function VolcanoModel({ url, visualRef, height, radius }: VolcanoModelPro
 }
 
 useGLTF.preload('/models/volcano/volcano_v001.glb');
+useGLTF.preload('/models/volcano/volcano_stratovolcano_low.glb');
+useGLTF.preload('/models/volcano/volcano_stratovolcano_mid.glb');
+useGLTF.preload('/models/volcano/volcano_stratovolcano_high.glb');
+useGLTF.preload('/models/volcano/volcano_shield_low.glb');
+useGLTF.preload('/models/volcano/volcano_shield_mid.glb');

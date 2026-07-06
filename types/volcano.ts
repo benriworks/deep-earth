@@ -31,6 +31,12 @@ export type VolcanoFeature = {
   mantleThetaDeg?: number;
   activity: VolcanoActivity;
   modelUrl?: string;
+  /** LOD 用 GLB。指定時はカメラ距離で low/mid/high を切り替える(Phase D) */
+  lodUrls?: {
+    low: string;
+    mid: string;
+    high: string;
+  };
 };
 
 export type VolcanoVisualState = {

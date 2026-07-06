@@ -84,6 +84,7 @@ function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
         {volcano.modelUrl ? (
           <VolcanoModel
             url={volcano.modelUrl}
+            lodUrls={volcano.lodUrls}
             visualRef={visualRef}
             height={transform.height}
             radius={transform.radius}

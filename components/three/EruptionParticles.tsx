@@ -6,6 +6,8 @@ import * as THREE from 'three';
 import type { VolcanoVisualState } from '@/types/volcano';
 
 const PARTICLE_COUNT = 120;
+/** これよりカメラが遠いと噴煙を省略する(Phase D の性能対策) */
+const FX_MAX_CAMERA_DISTANCE = 3.5;
 
 type ParticleState = {
   seed: Float32Array;
@@ -43,7 +45,10 @@ export function EruptionParticles({
     return new Float32Array(PARTICLE_COUNT * 3);
   }, []);
 
-  useFrame((_, delta) => {
+  const pointsRef = useRef<THREE.Points>(null);
+  const worldPos = useRef(new THREE.Vector3());
+
+  useFrame(({ camera }, delta) => {
     const geometry = geometryRef.current;
     const material = materialRef.current;
     const state = stateRef.current;
@@ -51,10 +56,17 @@ export function EruptionParticles({
 
     if (!geometry || !material || !state) return;
 
+    // 遠景では噴煙を省略(透明パーティクルの描画コスト削減)
+    let cameraDist = Infinity;
+    if (pointsRef.current) {
+      pointsRef.current.getWorldPosition(worldPos.current);
+      cameraDist = camera.position.distanceTo(worldPos.current);
+    }
+
     material.opacity = Math.min(0.65, Math.max(0, 0.08 + intensity * 0.55));
     material.size = 0.006 + intensity * 0.018;
-    material.visible = intensity > 0.03;
-    if (intensity <= 0.03) return;
+    material.visible = intensity > 0.03 && cameraDist < FX_MAX_CAMERA_DISTANCE;
+    if (!material.visible) return;
 
     const speed = 0.12 + intensity * 0.35;
     for (let i = 0; i < PARTICLE_COUNT; i += 1) {
@@ -74,7 +86,7 @@ export function EruptionParticles({
   });
 
   return (
-    <points frustumCulled={false}>
+    <points ref={pointsRef} frustumCulled={false}>
       <bufferGeometry ref={geometryRef}>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
