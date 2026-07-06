@@ -9,6 +9,7 @@ import { useLayerStore } from '@/stores/useLayerStore';
 import { useProbeStore } from '@/stores/useProbeStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { useCutPlanes } from './useCutPlanes';
+import { useLandTexture } from './useLandTexture';
 import type { EarthLayer } from '@/types/earth';
 
 /**
@@ -25,6 +26,8 @@ export function EarthLayers() {
 
   const { planes, clipIntersection, openDirection } = useCutPlanes(cutMode, cutAngleDeg);
   const cutAngleRad = (cutAngleDeg * Math.PI) / 180;
+  // 実地理の陸海テクスチャ(読み込み中は null → 従来の単色)。地殻シェルのみに貼る
+  const landTexture = useLandTexture();
 
   return (
     <group>
@@ -39,6 +42,7 @@ export function EarthLayers() {
             planes={planes}
             clipIntersection={clipIntersection}
             exaggerate={exaggerate}
+            map={layer.id === 'crust' ? landTexture : null}
           />
         );
       })}
@@ -74,12 +78,15 @@ function LayerShell({
   planes,
   clipIntersection,
   exaggerate,
+  map = null,
 }: {
   layer: EarthLayer;
   opacity: number;
   planes: THREE.Plane[];
   clipIntersection: boolean;
   exaggerate: boolean;
+  /** 陸海テクスチャ(地殻のみ)。適用時は乗算で濁らないよう color を白にする */
+  map?: THREE.Texture | null;
 }) {
   const radius = toSceneRadius(displayRadiiKm(layer, exaggerate).outerKm);
   const transparent = opacity < 1;
@@ -102,7 +109,9 @@ function LayerShell({
     <mesh onClick={handleClick}>
       <sphereGeometry args={[radius, 64, 32]} />
       <meshStandardMaterial
-        color={layer.color}
+        key={map ? 'land-textured' : 'plain'} // map 追加時のシェーダ再コンパイルを確実にする
+        map={map ?? undefined}
+        color={map ? '#ffffff' : layer.color}
         roughness={0.85}
         metalness={0.05}
         side={THREE.DoubleSide}

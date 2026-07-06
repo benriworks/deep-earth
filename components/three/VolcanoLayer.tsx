@@ -6,7 +6,8 @@ import * as THREE from 'three';
 import { EARTH_RADIUS_KM } from '@/lib/earthData';
 import { computeEruptionIntensity } from '@/lib/eruptionModel';
 import { sampleMantleForVolcano } from '@/lib/mantleSampler';
-import { demoVolcanoes } from '@/lib/volcanoData';
+import { loadVolcanoes } from '@/lib/volcanoCatalog';
+import { SUBMARINE_TINT } from '@/lib/volcanoData';
 import { useLayerStore } from '@/stores/useLayerStore';
 import { useVolcanoStore } from '@/stores/useVolcanoStore';
 import type { VolcanoFeature, VolcanoVisualState } from '@/types/volcano';
@@ -16,6 +17,7 @@ import { VolcanoModel } from './VolcanoModel';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const VISUAL_EXAGGERATION = 14;
+const volcanoes = loadVolcanoes();
 
 function latLonToUnitVector(latDeg: number, lonDeg: number): THREE.Vector3 {
   const lat = THREE.MathUtils.degToRad(latDeg);
@@ -30,9 +32,11 @@ function latLonToUnitVector(latDeg: number, lonDeg: number): THREE.Vector3 {
 function useVolcanoTransform(volcano: VolcanoFeature) {
   return useMemo(() => {
     const normal = latLonToUnitVector(volcano.lat, volcano.lon);
-    const height = (volcano.heightKm / EARTH_RADIUS_KM) * VISUAL_EXAGGERATION;
+    const height = (Math.abs(volcano.heightKm) / EARTH_RADIUS_KM) * VISUAL_EXAGGERATION;
     const radius = (volcano.baseRadiusKm / EARTH_RADIUS_KM) * VISUAL_EXAGGERATION;
-    const position = normal.clone().multiplyScalar(1 + height * 0.03);
+    // submarine は海上に飛び出さないよう押し出しなし(deep-reasoner 指摘の既知問題)
+    const surfaceScale = volcano.type === 'submarine' ? 1.0 : 1 + height * 0.03;
+    const position = normal.clone().multiplyScalar(surfaceScale);
     const quaternion = new THREE.Quaternion().setFromUnitVectors(UP, normal);
     return { height, radius, position, quaternion };
   }, [volcano]);
@@ -88,6 +92,7 @@ function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
             visualRef={visualRef}
             height={transform.height}
             radius={transform.radius}
+            tint={volcano.type === 'submarine' ? SUBMARINE_TINT : undefined}
           />
         ) : (
           <VolcanoFallback
@@ -112,7 +117,7 @@ export function VolcanoLayer() {
 
   return (
     <group name="VolcanoLayer">
-      {demoVolcanoes.map((volcano) => (
+      {volcanoes.map((volcano) => (
         <VolcanoInstance key={volcano.id} volcano={volcano} />
       ))}
     </group>

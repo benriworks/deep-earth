@@ -9,6 +9,32 @@ const PARTICLE_COUNT = 120;
 /** これよりカメラが遠いと噴煙を省略する(Phase D の性能対策) */
 const FX_MAX_CAMERA_DISTANCE = 3.5;
 
+/**
+ * 噴煙用の丸いソフトスプライト(放射グラデーション)。
+ * PointsMaterial は map なしだと四角い点になるため、Canvas で生成して共有する。
+ */
+let smokeSprite: THREE.CanvasTexture | null = null;
+function getSmokeSprite(): THREE.CanvasTexture | null {
+  if (typeof document === 'undefined') return null;
+  if (!smokeSprite) {
+    const size = 64;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.9)');
+    gradient.addColorStop(0.4, 'rgba(255,255,255,0.45)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, size);
+    smokeSprite = new THREE.CanvasTexture(canvas);
+    smokeSprite.needsUpdate = true;
+  }
+  return smokeSprite;
+}
+
 type ParticleState = {
   seed: Float32Array;
   age: Float32Array;
@@ -96,6 +122,8 @@ export function EruptionParticles({
         transparent
         opacity={0}
         depthWrite={false}
+        map={getSmokeSprite() ?? undefined}
+        alphaTest={0.01}
       />
     </points>
   );

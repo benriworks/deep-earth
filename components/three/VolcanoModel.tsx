@@ -14,6 +14,8 @@ type VolcanoModelProps = {
   radius: number;
   /** 指定時はカメラ距離で low/mid/high を切り替える(Phase D) */
   lodUrls?: { low: string; mid: string; high: string };
+  /** 岩肌マテリアルの色に乗算する tint(submarine の寒色化に使用) */
+  tint?: string;
 };
 
 type ControlledMaterial = {
@@ -25,17 +27,17 @@ type ControlledMaterial = {
  * Blender 製 GLB 火山。lodUrls 指定時は drei の Detailed でカメラ距離に応じて
  * low/mid/high を切り替える(Phase D)。
  */
-export function VolcanoModel({ url, visualRef, height, radius, lodUrls }: VolcanoModelProps) {
+export function VolcanoModel({ url, visualRef, height, radius, lodUrls, tint }: VolcanoModelProps) {
   if (lodUrls) {
     return (
       <Detailed distances={[0, 2.4, 4.5]}>
-        <VolcanoGLTF url={lodUrls.high} visualRef={visualRef} height={height} radius={radius} />
-        <VolcanoGLTF url={lodUrls.mid} visualRef={visualRef} height={height} radius={radius} />
-        <VolcanoGLTF url={lodUrls.low} visualRef={visualRef} height={height} radius={radius} />
+        <VolcanoGLTF url={lodUrls.high} visualRef={visualRef} height={height} radius={radius} tint={tint} />
+        <VolcanoGLTF url={lodUrls.mid} visualRef={visualRef} height={height} radius={radius} tint={tint} />
+        <VolcanoGLTF url={lodUrls.low} visualRef={visualRef} height={height} radius={radius} tint={tint} />
       </Detailed>
     );
   }
-  return <VolcanoGLTF url={url} visualRef={visualRef} height={height} radius={radius} />;
+  return <VolcanoGLTF url={url} visualRef={visualRef} height={height} radius={radius} tint={tint} />;
 }
 
 /**
@@ -49,6 +51,7 @@ function VolcanoGLTF({
   visualRef,
   height,
   radius,
+  tint,
 }: Omit<VolcanoModelProps, 'lodUrls'>) {
   const gltf = useGLTF(url);
   const controlledMaterialsRef = useRef<ControlledMaterial[]>([]);
@@ -56,6 +59,7 @@ function VolcanoGLTF({
   const scene = useMemo(() => {
     const cloned = gltf.scene.clone(true);
     const controlled: ControlledMaterial[] = [];
+    const tintColor = tint ? new THREE.Color(tint) : null;
 
     cloned.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return;
@@ -66,12 +70,18 @@ function VolcanoGLTF({
         const clonedMaterial = material.clone();
         const label = `${object.name} ${clonedMaterial.name}`.toLowerCase();
         if (clonedMaterial instanceof THREE.MeshStandardMaterial) {
-          if (label.includes('crater') || label.includes('inner')) {
+          const isCrater = label.includes('crater') || label.includes('inner');
+          const isLava = label.includes('lava');
+          if (isCrater) {
             controlled.push({ material: clonedMaterial, role: 'crater' });
           }
-          if (label.includes('lava')) {
+          if (isLava) {
             prepareLavaMaterial(clonedMaterial);
             controlled.push({ material: clonedMaterial, role: 'lava' });
+          }
+          // 発光部以外の岩肌に tint を乗算(submarine の寒色化)
+          if (tintColor && !isCrater && !isLava) {
+            clonedMaterial.color.multiply(tintColor);
           }
         }
         return clonedMaterial;
@@ -82,7 +92,7 @@ function VolcanoGLTF({
 
     controlledMaterialsRef.current = controlled;
     return cloned;
-  }, [gltf.scene]);
+  }, [gltf.scene, tint]);
 
   useFrame(({ clock }, delta) => {
     const intensity = visualRef.current.eruptionIntensity;
@@ -105,3 +115,7 @@ useGLTF.preload('/models/volcano/volcano_stratovolcano_mid.glb');
 useGLTF.preload('/models/volcano/volcano_stratovolcano_high.glb');
 useGLTF.preload('/models/volcano/volcano_shield_low.glb');
 useGLTF.preload('/models/volcano/volcano_shield_mid.glb');
+useGLTF.preload('/models/volcano/volcano_cinder_cone_low.glb');
+useGLTF.preload('/models/volcano/volcano_cinder_cone_mid.glb');
+useGLTF.preload('/models/volcano/volcano_caldera_low.glb');
+useGLTF.preload('/models/volcano/volcano_caldera_mid.glb');

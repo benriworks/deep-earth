@@ -19,6 +19,7 @@ export type VolcanoActivity = {
 export type VolcanoFeature = {
   id: string;
   name: string;
+  nameJa?: string;
   type: VolcanoType;
   lat: number;
   lon: number;
