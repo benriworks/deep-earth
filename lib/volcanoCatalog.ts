@@ -1,4 +1,4 @@
-import { demoVolcanoes } from '@/lib/volcanoData';
+import { demoVolcanoes, modelForType } from '@/lib/volcanoData';
 import { realVolcanoes } from '@/lib/realVolcanoes';
 import type { VolcanoFeature, VolcanoType } from '@/types/volcano';
 
@@ -79,16 +79,19 @@ export function validateVolcanoFeature(v: VolcanoFeature): string[] {
 }
 
 /**
- * demoVolcanoes と realVolcanoes を連結し、検証を通過したものだけを返す。
+ * 表示する火山カタログを返す。
+ * realVolcanoes(調査データ)が 1 件以上あればそれのみを使い、
+ * 空のときだけ demoVolcanoes にフォールバックする(架空デモと実在火山を混在させない)。
+ * 調査データは modelUrl/lodUrls を持たないため、type から modelForType で補完する。
  * 違反があるデータは console.warn で理由を出力して除外する(fail-soft)。
  * id が重複する場合も警告のうえ、後から現れたものを除外する(先勝ち)。
  */
 export function loadVolcanoes(): VolcanoFeature[] {
-  const all = [...demoVolcanoes, ...realVolcanoes];
+  const source = realVolcanoes.length > 0 ? realVolcanoes : demoVolcanoes;
   const seenIds = new Set<string>();
   const result: VolcanoFeature[] = [];
 
-  for (const volcano of all) {
+  for (const volcano of source) {
     const errors = validateVolcanoFeature(volcano);
     if (errors.length > 0) {
       console.warn(
@@ -106,7 +109,10 @@ export function loadVolcanoes(): VolcanoFeature[] {
     }
 
     seenIds.add(volcano.id);
-    result.push(volcano);
+    // GLB 未指定のデータはタイプから解決する
+    result.push(
+      volcano.modelUrl ? volcano : { ...volcano, ...modelForType(volcano.type) },
+    );
   }
 
   return result;
