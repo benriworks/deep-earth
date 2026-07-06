@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EARTH_RADIUS_KM } from '@/lib/earthData';
@@ -8,6 +8,7 @@ import { demoVolcanoes } from '@/lib/volcanoData';
 import { useLayerStore } from '@/stores/useLayerStore';
 import type { VolcanoFeature, VolcanoVisualState } from '@/types/volcano';
 import { VolcanoFallback } from './VolcanoFallback';
+import { VolcanoModel } from './VolcanoModel';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const VISUAL_EXAGGERATION = 14;
@@ -56,7 +57,30 @@ function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
 
   return (
     <group position={transform.position} quaternion={transform.quaternion}>
-      <VolcanoFallback visualRef={visualRef} height={transform.height} radius={transform.radius} />
+      <Suspense
+        fallback={
+          <VolcanoFallback
+            visualRef={visualRef}
+            height={transform.height}
+            radius={transform.radius}
+          />
+        }
+      >
+        {volcano.modelUrl ? (
+          <VolcanoModel
+            url={volcano.modelUrl}
+            visualRef={visualRef}
+            height={transform.height}
+            radius={transform.radius}
+          />
+        ) : (
+          <VolcanoFallback
+            visualRef={visualRef}
+            height={transform.height}
+            radius={transform.radius}
+          />
+        )}
+      </Suspense>
     </group>
   );
 }

@@ -13,6 +13,7 @@ export const demoVolcanoes: VolcanoFeature[] = [
     mantleSampleDepthKm: 80,
     eruptionThreshold: 0.58,
     mantleThetaDeg: 140,
+    modelUrl: '/models/volcano/volcano_v001.glb',
     activity: {
       heat: 0.25,
       pressure: 0.2,
