@@ -9,6 +9,7 @@ import SeismicPanel from '@/components/panel/SeismicPanel';
 import ObserverPanel from '@/components/panel/ObserverPanel';
 import QuizPanel from '@/components/panel/QuizPanel';
 import ScienceNote from '@/components/panel/ScienceNote';
+import VolcanoPanel from '@/components/panel/VolcanoPanel';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -27,6 +28,9 @@ export default function SimulatorPanel() {
       </Section>
       <Section title="レイヤー">
         <LayerList />
+      </Section>
+      <Section title="火山">
+        <VolcanoPanel />
       </Section>
       <Section title="レイヤー詳細">
         <LayerInfo />

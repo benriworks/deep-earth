@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
 import { EarthLayers } from './EarthLayers';
+import { VolcanoLayer } from './VolcanoLayer';
 import { Probe } from './Probe';
 import { SeismicWaves } from './SeismicWaves';
 import { MantleConvection } from './MantleConvection';
@@ -39,6 +40,7 @@ export default function SceneRoot() {
         <directionalLight position={[5, 3, 5]} intensity={1.2} />
         <directionalLight position={[-4, -2, -4]} intensity={0.3} />
         <EarthLayers />
+        <VolcanoLayer />
         <Probe />
         <SeismicWaves />
         <Observers />

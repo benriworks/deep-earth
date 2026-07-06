@@ -1,0 +1,28 @@
+{
+  "repository": "benriworks/deep-earth",
+  "repository_visibility_checked": "Public on GitHub web UI as of 2026-07-06",
+  "branch": "main",
+  "framework": "Next.js 15.5.20 App Router + TypeScript strict",
+  "package_manager": "pnpm (pnpm-lock.yaml present and README uses pnpm)",
+  "react": "19.1.0",
+  "three_stack": [
+    "three ^0.185.1",
+    "@react-three/fiber ^9.6.1",
+    "@react-three/drei ^10.7.7"
+  ],
+  "state_management": "zustand ^5.0.14",
+  "test": "vitest ^4.1.9",
+  "app_root": "app/",
+  "simulator_route": "app/simulator/page.tsx",
+  "three_component_root": "components/three/",
+  "panel_component_root": "components/panel/",
+  "lib_root": "lib/",
+  "store_root": "stores/",
+  "type_root": "types/",
+  "asset_root": "public/",
+  "scene_canvas": "components/three/SceneCanvas.tsx dynamically imports SceneRoot with ssr:false",
+  "scene_root": "components/three/SceneRoot.tsx owns Canvas and places EarthLayers, Probe, SeismicWaves, Observers, ShadowArcs, MantleConvection",
+  "mantle_field": "lib/convection.ts exposes convectionVelocity, randomMantleParticle, MANTLE_INNER, MANTLE_OUTER",
+  "earth_scale": "lib/earthData.ts normalizes EARTH_RADIUS_KM=6371 to scene radius 1 via toSceneRadius",
+  "assets_currently_present": "public currently contains default SVGs; no public/models/volcano folder confirmed in GitHub tree"
+}

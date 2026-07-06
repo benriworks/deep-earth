@@ -1,0 +1,79 @@
+{
+  "name": "deep-earth-volcano-docs-v3-repo-aligned",
+  "created_at": "2026-07-06",
+  "source_repository": "benriworks/deep-earth",
+  "source_branch": "main",
+  "basis": "Uploaded conversation log and prior docs ZIP, updated against public GitHub repository structure.",
+  "files": [
+    {
+      "path": "00_overall_requirements_and_architecture.md",
+      "bytes": 7490,
+      "sha256": "3c17caf167a27b8d2edd5e14aa803ea2654f16e71e34bf9e80f6cfd8d99951fe"
+    },
+    {
+      "path": "01_phase_a_blender_static_asset_and_glb_import.md",
+      "bytes": 6552,
+      "sha256": "47d3ac360f72c69d4eb472074b6c1d3bf37fc2e182291d529fdc2cbe130d8829"
+    },
+    {
+      "path": "02_phase_b_crater_emissive_and_smoke_fx.md",
+      "bytes": 4591,
+      "sha256": "b419a146110396f819e9a676ebab5d532db280309f4bb53049b118cc744e2be4"
+    },
+    {
+      "path": "03_phase_c_lava_flow_and_mantle_coupling.md",
+      "bytes": 5011,
+      "sha256": "05a7723256d06b7df5a6505ae1c933a58beba623dd7f12c1e18082cf325ea39f"
+    },
+    {
+      "path": "04_phase_d_variants_lod_performance.md",
+      "bytes": 3513,
+      "sha256": "2a2e48f026ca96088ddcf70fe9489373a0983d6801b14e8496ed0efb152e6c04"
+    },
+    {
+      "path": "05_work_instructions_tickets.md",
+      "bytes": 6174,
+      "sha256": "f454fb8cafd1c5965d310179553b5923cfa70442ed10c56590c8533be9209464"
+    },
+    {
+      "path": "06_code_skeleton.md",
+      "bytes": 18999,
+      "sha256": "6a3f94a5fb5ffd12aa1ae642319e5ec7c13dd9cc8ebfbde0b5b3cb77ba95c5a7"
+    },
+    {
+      "path": "07_repository_alignment.md",
+      "bytes": 6211,
+      "sha256": "1c04dd9393ed6d05e6c9ecc7367e61f70b12e78b80fa21269d2667e8f968d181"
+    },
+    {
+      "path": "08_geometry_fallback_prototype.md",
+      "bytes": 2501,
+      "sha256": "aeef17f5995041557bc8cc410fa6b42cdffd48b48d5458a113c9550b1b08f729"
+    },
+    {
+      "path": "99_update_summary.md",
+      "bytes": 2415,
+      "sha256": "fa618dbd3c835be28e5ec35d0ce2a83253c1f59936e36b0e00fb19f8995dbf9d"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 1264,
+      "sha256": "a38478fb2494e393b2c8f194fb7ed919ab705ca44f202c1fe83837c5dd9d0f10"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5913,
+      "sha256": "6bbbc890fd055a6190bec343c07d455e19d5bfd3c4af453a5adb0996fd5dde0d"
+    },
+    {
+      "path": "reference/deep-earth_conversation_log.md",
+      "bytes": 19715,
+      "sha256": "cc37c01d510a9db2154ddc036ab418ab8575e68b9026b6f71547e36c397490a6"
+    },
+    {
+      "path": "reference/repository_snapshot_2026-07-06.json",
+      "bytes": 1344,
+      "sha256": "97f5e571c1e08b25c637d55a0484f8546ea3fe2472be494ddfe2a66e173a2154"
+    }
+  ]
+}
