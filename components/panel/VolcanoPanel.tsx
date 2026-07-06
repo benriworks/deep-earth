@@ -10,6 +10,10 @@ export default function VolcanoPanel() {
   const setShowVolcanoes = useLayerStore((s) => s.setShowVolcanoes);
   const volcanoDebugIntensity = useVolcanoStore((s) => s.volcanoDebugIntensity);
   const setVolcanoDebugIntensity = useVolcanoStore((s) => s.setVolcanoDebugIntensity);
+  const heightExaggeration = useVolcanoStore((s) => s.heightExaggeration);
+  const setHeightExaggeration = useVolcanoStore((s) => s.setHeightExaggeration);
+  const radiusExaggeration = useVolcanoStore((s) => s.radiusExaggeration);
+  const setRadiusExaggeration = useVolcanoStore((s) => s.setRadiusExaggeration);
 
   const isAuto = volcanoDebugIntensity === null;
   const sliderValue = isAuto ? 0 : Math.round(volcanoDebugIntensity * 100);
@@ -50,8 +54,42 @@ export default function VolcanoPanel() {
         />
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>高さ誇張</span>
+          <span className="tabular-nums">{`×${heightExaggeration}`}</span>
+        </div>
+        <Slider
+          aria-label="火山の高さ誇張率"
+          value={heightExaggeration}
+          min={1}
+          max={30}
+          step={0.5}
+          onValueChange={(value) => setHeightExaggeration(value as number)}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>広がり誇張</span>
+          <span className="tabular-nums">{`×${radiusExaggeration}`}</span>
+        </div>
+        <Slider
+          aria-label="火山の広がり誇張率"
+          value={radiusExaggeration}
+          min={1}
+          max={14}
+          step={0.5}
+          onValueChange={(value) => setRadiusExaggeration(value as number)}
+        />
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        ×1 が実スケールです(実際の火山は地球に対して小さすぎて、ほぼ見えなくなります)。高さと広がりを別々に誇張できます。
+      </p>
+
       <p className="text-xs leading-relaxed text-muted-foreground">
-        火山とマントル対流の連動は教育用の簡略化です。断面のマントル対流(2D)の上昇流を火山の位置で読み取り、噴火の強さに変換しています。実際の火山活動はプレート運動・マグマの化学組成など多くの要因で決まります。火山のサイズは視認性のため大幅に誇張しています。
+        火山とマントル対流の連動は教育用の簡略化です。断面のマントル対流(2D)の上昇流を火山の位置で読み取り、噴火の強さに変換しています。実際の火山活動はプレート運動・マグマの化学組成など多くの要因で決まります。火山のサイズは視認性のため誇張しています(既定: 高さ×14・広がり×4.5。スライダーで調整可能)。
       </p>
     </div>
   );
