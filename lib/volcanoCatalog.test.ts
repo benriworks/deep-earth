@@ -67,7 +67,37 @@ describe('validateVolcanoFeature', () => {
   });
 });
 
+describe('realVolcanoes(納品データの受け入れ検証)', () => {
+  it('全件が検証ルールを警告ゼロで通過する', async () => {
+    const { realVolcanoes } = await import('@/lib/realVolcanoes');
+    const { validateVolcanoFeature } = await import('@/lib/volcanoCatalog');
+    expect(realVolcanoes.length).toBeGreaterThanOrEqual(20);
+    expect(realVolcanoes.length).toBeLessThanOrEqual(30);
+    for (const volcano of realVolcanoes) {
+      expect(validateVolcanoFeature(volcano), volcano.id).toEqual([]);
+    }
+  });
+
+  it('id が一意で、日本語名が全件埋まっている', async () => {
+    const { realVolcanoes } = await import('@/lib/realVolcanoes');
+    const ids = realVolcanoes.map((v) => v.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const volcano of realVolcanoes) {
+      expect(volcano.nameJa, volcano.id).toBeTruthy();
+    }
+  });
+});
+
 describe('loadVolcanoes', () => {
+  const modelForTypeMock = (type: string) => ({
+    modelUrl: `/models/volcano/mock_${type}.glb`,
+    lodUrls: {
+      low: `/models/volcano/mock_${type}_low.glb`,
+      mid: `/models/volcano/mock_${type}_mid.glb`,
+      high: `/models/volcano/mock_${type}_high.glb`,
+    },
+  });
+
   beforeEach(() => {
     vi.resetModules();
   });
@@ -78,19 +108,53 @@ describe('loadVolcanoes', () => {
     vi.doUnmock('@/lib/realVolcanoes');
   });
 
+  it('real データがあるときは demo を含まず、modelUrl を type から補完する', async () => {
+    const demo = makeVolcano({ id: 'volcano-demo-x' });
+    const real = makeVolcano({ id: 'volcano-real-x', type: 'shield' });
+
+    vi.doMock('@/lib/volcanoData', () => ({
+      demoVolcanoes: [demo],
+      modelForType: modelForTypeMock,
+    }));
+    vi.doMock('@/lib/realVolcanoes', () => ({ realVolcanoes: [real] }));
+
+    const { loadVolcanoes } = await import('@/lib/volcanoCatalog');
+    const result = loadVolcanoes();
+
+    expect(result.map((v) => v.id)).toEqual(['volcano-real-x']);
+    expect(result[0].modelUrl).toBe('/models/volcano/mock_shield.glb');
+    expect(result[0].lodUrls?.low).toBe('/models/volcano/mock_shield_low.glb');
+  });
+
+  it('real データが空のときは demo にフォールバックする', async () => {
+    const demo = makeVolcano({ id: 'volcano-demo-x' });
+
+    vi.doMock('@/lib/volcanoData', () => ({
+      demoVolcanoes: [demo],
+      modelForType: modelForTypeMock,
+    }));
+    vi.doMock('@/lib/realVolcanoes', () => ({ realVolcanoes: [] }));
+
+    const { loadVolcanoes } = await import('@/lib/volcanoCatalog');
+    expect(loadVolcanoes().map((v) => v.id)).toEqual(['volcano-demo-x']);
+  });
+
   it('不正データを除外して警告する', async () => {
     const valid = makeVolcano({ id: 'volcano-valid-001' });
     const invalid = makeVolcano({ id: 'volcano-invalid-001', lat: 999 });
 
-    vi.doMock('@/lib/volcanoData', () => ({ demoVolcanoes: [valid] }));
-    vi.doMock('@/lib/realVolcanoes', () => ({ realVolcanoes: [invalid] }));
+    vi.doMock('@/lib/volcanoData', () => ({
+      demoVolcanoes: [],
+      modelForType: modelForTypeMock,
+    }));
+    vi.doMock('@/lib/realVolcanoes', () => ({ realVolcanoes: [valid, invalid] }));
 
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { loadVolcanoes } = await import('@/lib/volcanoCatalog');
 
     const result = loadVolcanoes();
 
-    expect(result).toEqual([valid]);
+    expect(result.map((v) => v.id)).toEqual(['volcano-valid-001']);
     expect(warnSpy).toHaveBeenCalled();
   });
 
@@ -98,8 +162,11 @@ describe('loadVolcanoes', () => {
     const first = makeVolcano({ id: 'volcano-dup-001', name: 'First' });
     const second = makeVolcano({ id: 'volcano-dup-001', name: 'Second' });
 
-    vi.doMock('@/lib/volcanoData', () => ({ demoVolcanoes: [first] }));
-    vi.doMock('@/lib/realVolcanoes', () => ({ realVolcanoes: [second] }));
+    vi.doMock('@/lib/volcanoData', () => ({
+      demoVolcanoes: [],
+      modelForType: modelForTypeMock,
+    }));
+    vi.doMock('@/lib/realVolcanoes', () => ({ realVolcanoes: [first, second] }));
 
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { loadVolcanoes } = await import('@/lib/volcanoCatalog');
