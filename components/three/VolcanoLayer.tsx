@@ -16,7 +16,6 @@ import { VolcanoFallback } from './VolcanoFallback';
 import { VolcanoModel } from './VolcanoModel';
 
 const UP = new THREE.Vector3(0, 1, 0);
-const VISUAL_EXAGGERATION = 14;
 const volcanoes = loadVolcanoes();
 
 function latLonToUnitVector(latDeg: number, lonDeg: number): THREE.Vector3 {
@@ -29,21 +28,29 @@ function latLonToUnitVector(latDeg: number, lonDeg: number): THREE.Vector3 {
   ).normalize();
 }
 
-function useVolcanoTransform(volcano: VolcanoFeature) {
+function useVolcanoTransform(
+  volcano: VolcanoFeature,
+  heightExaggeration: number,
+  radiusExaggeration: number,
+) {
   return useMemo(() => {
     const normal = latLonToUnitVector(volcano.lat, volcano.lon);
-    const height = (Math.abs(volcano.heightKm) / EARTH_RADIUS_KM) * VISUAL_EXAGGERATION;
-    const radius = (volcano.baseRadiusKm / EARTH_RADIUS_KM) * VISUAL_EXAGGERATION;
+    // 高さと広がりの誇張率は独立(既定: 高さ×14・広がり×4.5)。×1 = 実スケール
+    const height = (Math.abs(volcano.heightKm) / EARTH_RADIUS_KM) * heightExaggeration;
+    const radius = (volcano.baseRadiusKm / EARTH_RADIUS_KM) * radiusExaggeration;
     // submarine は海上に飛び出さないよう押し出しなし(deep-reasoner 指摘の既知問題)
     const surfaceScale = volcano.type === 'submarine' ? 1.0 : 1 + height * 0.03;
     const position = normal.clone().multiplyScalar(surfaceScale);
     const quaternion = new THREE.Quaternion().setFromUnitVectors(UP, normal);
     return { height, radius, position, quaternion };
-  }, [volcano]);
+  }, [volcano, heightExaggeration, radiusExaggeration]);
 }
 
 function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
-  const transform = useVolcanoTransform(volcano);
+  // スライダー操作は離散イベントなので reactive 購読でよい(毎フレーム値ではない)
+  const heightExaggeration = useVolcanoStore((s) => s.heightExaggeration);
+  const radiusExaggeration = useVolcanoStore((s) => s.radiusExaggeration);
+  const transform = useVolcanoTransform(volcano, heightExaggeration, radiusExaggeration);
   const visualRef = useRef<VolcanoVisualState>({
     eruptionIntensity: volcano.activity.eruption,
     heat: volcano.activity.heat,
