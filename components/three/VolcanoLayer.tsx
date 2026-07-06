@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { EARTH_RADIUS_KM } from '@/lib/earthData';
 import { computeEruptionIntensity } from '@/lib/eruptionModel';
 import { sampleMantleForVolcano } from '@/lib/mantleSampler';
-import { demoVolcanoes } from '@/lib/volcanoData';
+import { loadVolcanoes } from '@/lib/volcanoCatalog';
 import { useLayerStore } from '@/stores/useLayerStore';
 import { useVolcanoStore } from '@/stores/useVolcanoStore';
 import type { VolcanoFeature, VolcanoVisualState } from '@/types/volcano';
@@ -16,6 +16,7 @@ import { VolcanoModel } from './VolcanoModel';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const VISUAL_EXAGGERATION = 14;
+const volcanoes = loadVolcanoes();
 
 function latLonToUnitVector(latDeg: number, lonDeg: number): THREE.Vector3 {
   const lat = THREE.MathUtils.degToRad(latDeg);
@@ -112,7 +113,7 @@ export function VolcanoLayer() {
 
   return (
     <group name="VolcanoLayer">
-      {demoVolcanoes.map((volcano) => (
+      {volcanoes.map((volcano) => (
         <VolcanoInstance key={volcano.id} volcano={volcano} />
       ))}
     </group>
