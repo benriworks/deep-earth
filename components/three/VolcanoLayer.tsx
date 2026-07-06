@@ -6,7 +6,9 @@ import * as THREE from 'three';
 import { EARTH_RADIUS_KM } from '@/lib/earthData';
 import { demoVolcanoes } from '@/lib/volcanoData';
 import { useLayerStore } from '@/stores/useLayerStore';
+import { useVolcanoStore } from '@/stores/useVolcanoStore';
 import type { VolcanoFeature, VolcanoVisualState } from '@/types/volcano';
+import { EruptionParticles } from './EruptionParticles';
 import { VolcanoFallback } from './VolcanoFallback';
 import { VolcanoModel } from './VolcanoModel';
 
@@ -43,13 +45,14 @@ function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
     gas: volcano.activity.gas,
   });
 
-  // PR-1 の簡易版: マントル連動・噴火モデルは未実装のため、
-  // activity.eruption へ damp するだけ。PR-3/PR-4 で computeEruptionIntensity /
-  // sampleMantleForVolcano を使った本実装に差し替える。
+  // debug override(パネルのスライダー)> activity.eruption。
+  // PR-4 でマントル連動(sampleMantleForVolcano + computeEruptionIntensity)を合成する。
   useFrame((_, delta) => {
+    const debugIntensity = useVolcanoStore.getState().volcanoDebugIntensity;
+    const target = debugIntensity ?? volcano.activity.eruption;
     visualRef.current.eruptionIntensity = THREE.MathUtils.damp(
       visualRef.current.eruptionIntensity,
-      volcano.activity.eruption,
+      target,
       1.8,
       delta,
     );
@@ -81,6 +84,11 @@ function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
           />
         )}
       </Suspense>
+      <EruptionParticles
+        visualRef={visualRef}
+        height={transform.height}
+        radius={transform.radius}
+      />
     </group>
   );
 }

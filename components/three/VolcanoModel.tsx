@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import { type RefObject, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { VolcanoVisualState } from '@/types/volcano';
+import { prepareLavaMaterial, updateLavaMaterial } from './LavaFlowMaterial';
 
 type VolcanoModelProps = {
   url: string;
@@ -45,6 +46,7 @@ export function VolcanoModel({ url, visualRef, height, radius }: VolcanoModelPro
             controlled.push({ material: clonedMaterial, role: 'crater' });
           }
           if (label.includes('lava')) {
+            prepareLavaMaterial(clonedMaterial);
             controlled.push({ material: clonedMaterial, role: 'lava' });
           }
         }
@@ -58,14 +60,14 @@ export function VolcanoModel({ url, visualRef, height, radius }: VolcanoModelPro
     return cloned;
   }, [gltf.scene]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     const intensity = visualRef.current.eruptionIntensity;
     const pulse = 0.15 * Math.sin(clock.elapsedTime * 5);
     for (const item of controlledMaterialsRef.current) {
       if (item.role === 'crater') {
         item.material.emissiveIntensity = 0.25 + intensity * 3.8 + pulse;
       } else {
-        item.material.emissiveIntensity = 0.2 + intensity * 3.0 + pulse;
+        updateLavaMaterial(item.material, intensity, delta, pulse);
       }
     }
   });
