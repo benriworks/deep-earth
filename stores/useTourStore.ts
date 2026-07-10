@@ -41,7 +41,7 @@ export const TOUR_STEPS: TourStep[] = [
       const layer = useLayerStore.getState();
       layer.setCutMode('quarter');
       layer.setShowLabels(true);
-      layer.setShowConvection(false);
+      layer.setConvectionMode('off'); // 層構造に集中するため一時的に対流表示を消す
       layer.setExaggerateThinLayers(false);
       useSimStore.getState().stop();
       useProbeStore.getState().reset();

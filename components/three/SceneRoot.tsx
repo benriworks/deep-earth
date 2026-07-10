@@ -8,6 +8,7 @@ import { EarthLayers } from './EarthLayers';
 import { VolcanoLayer } from './VolcanoLayer';
 import { Probe } from './Probe';
 import { SeismicWaves } from './SeismicWaves';
+import { MagmaHeatmap } from './MagmaHeatmap';
 import { MantleConvection } from './MantleConvection';
 import { Observers } from './Observers';
 import { ShadowArcs } from './ShadowArcs';
@@ -48,6 +49,7 @@ export default function SceneRoot() {
         <SeismicWaves />
         <Observers />
         <ShadowArcs />
+        <MagmaHeatmap />
         <MantleConvection />
         <OrbitControls makeDefault enableDamping minDistance={1.3} maxDistance={6} />
         {process.env.NODE_ENV === 'development' && <Stats />}

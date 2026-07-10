@@ -6,6 +6,13 @@ import { EARTH_LAYERS } from '@/lib/earthData';
 
 export type CutMode = 'none' | 'half' | 'quarter';
 
+/**
+ * マントル対流の表示モード。
+ * heatmap = 物理シミュレーション(Worker で簡易ブシネスク対流、推奨・既定)
+ * particles = 旧解析場の粒子表示(軽量フォールバック)
+ */
+export type ConvectionMode = 'off' | 'heatmap' | 'particles';
+
 export interface LayerView {
   visible: boolean;
   opacity: number;
@@ -16,8 +23,8 @@ interface LayerStore {
   /** カット面の向き(Y軸まわりの回転角、度) */
   cutAngleDeg: number;
   showLabels: boolean;
-  /** マントル対流パーティクルの表示 */
-  showConvection: boolean;
+  /** マントル対流の表示モード(既定: 物理シミュレーション) */
+  convectionMode: ConvectionMode;
   /** 薄い地殻を視認できる厚さに誇張表示する(データは実スケールのまま) */
   exaggerateThinLayers: boolean;
   /** 火山レイヤーの表示 */
@@ -26,7 +33,7 @@ interface LayerStore {
   setCutMode: (mode: CutMode) => void;
   setCutAngle: (deg: number) => void;
   setShowLabels: (show: boolean) => void;
-  setShowConvection: (show: boolean) => void;
+  setConvectionMode: (mode: ConvectionMode) => void;
   setExaggerateThinLayers: (exaggerate: boolean) => void;
   setShowVolcanoes: (show: boolean) => void;
   setLayerVisible: (id: LayerId, visible: boolean) => void;
@@ -41,14 +48,14 @@ export const useLayerStore = create<LayerStore>((set) => ({
   cutMode: 'quarter',
   cutAngleDeg: 0,
   showLabels: true,
-  showConvection: false,
+  convectionMode: 'heatmap',
   exaggerateThinLayers: false,
   showVolcanoes: true,
   layerView: initialLayerView,
   setCutMode: (cutMode) => set({ cutMode }),
   setCutAngle: (cutAngleDeg) => set({ cutAngleDeg }),
   setShowLabels: (showLabels) => set({ showLabels }),
-  setShowConvection: (showConvection) => set({ showConvection }),
+  setConvectionMode: (convectionMode) => set({ convectionMode }),
   setExaggerateThinLayers: (exaggerateThinLayers) => set({ exaggerateThinLayers }),
   setShowVolcanoes: (showVolcanoes) => set({ showVolcanoes }),
   setLayerVisible: (id, visible) =>
