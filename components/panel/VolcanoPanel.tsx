@@ -14,6 +14,8 @@ export default function VolcanoPanel() {
   const setHeightExaggeration = useVolcanoStore((s) => s.setHeightExaggeration);
   const radiusExaggeration = useVolcanoStore((s) => s.radiusExaggeration);
   const setRadiusExaggeration = useVolcanoStore((s) => s.setRadiusExaggeration);
+  const showVolcanoLabels = useVolcanoStore((s) => s.showVolcanoLabels);
+  const setShowVolcanoLabels = useVolcanoStore((s) => s.setShowVolcanoLabels);
 
   const isAuto = volcanoDebugIntensity === null;
   const sliderValue = isAuto ? 0 : Math.round(volcanoDebugIntensity * 100);
@@ -27,6 +29,18 @@ export default function VolcanoPanel() {
           checked={showVolcanoes}
           onCheckedChange={setShowVolcanoes}
         />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">火山名ラベル</span>
+          <Switch
+            aria-label="火山名ラベル表示"
+            checked={showVolcanoLabels}
+            onCheckedChange={setShowVolcanoLabels}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">火山に近づくと名前を表示します</p>
       </div>
 
       <div className="flex items-center justify-between text-xs">
