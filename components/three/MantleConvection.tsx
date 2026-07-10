@@ -27,7 +27,7 @@ const SINKING = new THREE.Color('#60a5fa'); // 下降流(低温)
 export function MantleConvection() {
   const cutMode = useLayerStore((s) => s.cutMode);
   const cutAngleDeg = useLayerStore((s) => s.cutAngleDeg);
-  const showConvection = useLayerStore((s) => s.showConvection);
+  const convectionMode = useLayerStore((s) => s.convectionMode);
   const mantleVisible = useLayerStore(
     (s) => s.layerView.upperMantle.visible || s.layerView.lowerMantle.visible,
   );
@@ -93,7 +93,8 @@ export function MantleConvection() {
     geometry.attributes.color.needsUpdate = true;
   });
 
-  if (!showConvection || cutMode === 'none' || !mantleVisible) return null;
+  // 'particles' = 旧解析場の粒子表示(軽量フォールバック)。heatmap とは相互排他
+  if (convectionMode !== 'particles' || cutMode === 'none' || !mantleVisible) return null;
 
   const cutAngleRad = (cutAngleDeg * Math.PI) / 180;
   return (

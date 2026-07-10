@@ -3,7 +3,7 @@
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useLayerStore, type CutMode } from '@/stores/useLayerStore';
+import { useLayerStore, type ConvectionMode, type CutMode } from '@/stores/useLayerStore';
 
 const CUT_MODE_OPTIONS: { value: CutMode; label: string }[] = [
   { value: 'none', label: 'なし' },
@@ -11,16 +11,22 @@ const CUT_MODE_OPTIONS: { value: CutMode; label: string }[] = [
   { value: 'quarter', label: 'クォーター' },
 ];
 
+const CONVECTION_OPTIONS: { value: ConvectionMode; label: string }[] = [
+  { value: 'heatmap', label: '物理シミュ' },
+  { value: 'particles', label: '粒子(軽量)' },
+  { value: 'off', label: 'OFF' },
+];
+
 export default function CutControls() {
   const cutMode = useLayerStore((s) => s.cutMode);
   const cutAngleDeg = useLayerStore((s) => s.cutAngleDeg);
   const showLabels = useLayerStore((s) => s.showLabels);
-  const showConvection = useLayerStore((s) => s.showConvection);
+  const convectionMode = useLayerStore((s) => s.convectionMode);
   const exaggerateThinLayers = useLayerStore((s) => s.exaggerateThinLayers);
   const setCutMode = useLayerStore((s) => s.setCutMode);
   const setCutAngle = useLayerStore((s) => s.setCutAngle);
   const setShowLabels = useLayerStore((s) => s.setShowLabels);
-  const setShowConvection = useLayerStore((s) => s.setShowConvection);
+  const setConvectionMode = useLayerStore((s) => s.setConvectionMode);
   const setExaggerateThinLayers = useLayerStore((s) => s.setExaggerateThinLayers);
 
   return (
@@ -63,12 +69,21 @@ export default function CutControls() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">マントル対流</span>
-          <Switch aria-label="マントル対流" checked={showConvection} onCheckedChange={setShowConvection} />
-        </div>
+        <span className="text-xs text-muted-foreground">マントル対流(マグマの動き)</span>
+        <Tabs
+          value={convectionMode}
+          onValueChange={(value) => setConvectionMode(value as ConvectionMode)}
+        >
+          <TabsList className="w-full" aria-label="マントル対流の表示モード">
+            {CONVECTION_OPTIONS.map((opt) => (
+              <TabsTrigger key={opt.value} value={opt.value} className="text-xs">
+                {opt.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          断面にマントル対流の流れを表示します(速度は大幅に誇張)。上昇流=赤、下降流=青。
+          物理シミュ(推奨)は簡略化した2Dブシネスク対流をリアルタイム計算し、プルームの発生・移動を断面に表示します(速度は大幅に誇張)。動作が重い場合は「粒子(軽量)」か OFF に切り替えてください。火山との連動は別の簡易モデルで計算しています。
         </p>
       </div>
 
