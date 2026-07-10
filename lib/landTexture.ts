@@ -16,6 +16,57 @@ export const LAND_TEXTURE_COLORS = {
   land: '#8a7a63', // 現行の地殻色。map 使用時は material.color を白にする
 };
 
+/** roughnessMap 用の値(白=粗い)。海はなめらか=光沢、陸はマット */
+export const ROUGHNESS_COLORS = {
+  ocean: '#595959', // roughness ≈ 0.35
+  land: '#f2f2f2', // roughness ≈ 0.95
+};
+
+/**
+ * シード付きの決定論的な値ノイズ(0..1)。格子点ハッシュ + スムーズ補間。
+ * テクスチャの色むら用(依存追加なし・テスト可能)。
+ */
+export function valueNoise2D(x: number, y: number, seed = 1): number {
+  const hash = (ix: number, iy: number): number => {
+    let h = (ix * 374761393 + iy * 668265263 + seed * 144269) | 0;
+    h = ((h ^ (h >>> 13)) * 1274126177) | 0;
+    h = h ^ (h >>> 16);
+    return (h >>> 0) / 4294967295;
+  };
+  const ix = Math.floor(x);
+  const iy = Math.floor(y);
+  const fx = x - ix;
+  const fy = y - iy;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+  const top = hash(ix, iy) + (hash(ix + 1, iy) - hash(ix, iy)) * sx;
+  const bottom = hash(ix, iy + 1) + (hash(ix + 1, iy + 1) - hash(ix, iy + 1)) * sx;
+  return top + (bottom - top) * sy;
+}
+
+/**
+ * 描画済みのカラーマップに 2 オクターブの明度むらを乗せる(陸 ±8%、海 ±5%)。
+ * 陸/海の判定は R チャンネルのしきい値(land #8a=138 / ocean #16=22)。
+ */
+export function applyTerrainNoise(ctx: CanvasRenderingContext2D, width: number, height: number): void {
+  const image = ctx.getImageData(0, 0, width, height);
+  const data = image.data;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const isLand = data[i] > 80;
+      const n =
+        0.65 * valueNoise2D(x / 48, y / 48, 7) + 0.35 * valueNoise2D(x / 12, y / 12, 13);
+      const amp = isLand ? 0.16 : 0.1; // ±8% / ±5%
+      const factor = 1 + amp * (n - 0.5);
+      data[i] = Math.min(255, data[i] * factor);
+      data[i + 1] = Math.min(255, data[i + 1] * factor);
+      data[i + 2] = Math.min(255, data[i + 2] * factor);
+    }
+  }
+  ctx.putImageData(image, 0, 0);
+}
+
 /** 経緯度 → canvas ピクセル座標 */
 export function projectToPixel(
   lonDeg: number,

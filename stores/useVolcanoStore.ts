@@ -15,11 +15,14 @@ interface VolcanoStore {
   heightExaggeration: number;
   /** 広がり(フットプリント)の誇張率。高さと分けて重なりを抑える */
   radiusExaggeration: number;
+  /** 近接時の火山名ラベル表示 */
+  showVolcanoLabels: boolean;
   setSelectedVolcano: (id: string | null) => void;
   setVolcanoDebugIntensity: (value: number | null) => void;
   setShowMantleCouplingDebug: (show: boolean) => void;
   setHeightExaggeration: (value: number) => void;
   setRadiusExaggeration: (value: number) => void;
+  setShowVolcanoLabels: (show: boolean) => void;
 }
 
 export const useVolcanoStore = create<VolcanoStore>((set) => ({
@@ -28,10 +31,12 @@ export const useVolcanoStore = create<VolcanoStore>((set) => ({
   showMantleCouplingDebug: false,
   heightExaggeration: 14,
   radiusExaggeration: 4.5,
+  showVolcanoLabels: true,
   setSelectedVolcano: (selectedVolcanoId) => set({ selectedVolcanoId }),
   setVolcanoDebugIntensity: (volcanoDebugIntensity) => set({ volcanoDebugIntensity }),
   setShowMantleCouplingDebug: (showMantleCouplingDebug) =>
     set({ showMantleCouplingDebug }),
   setHeightExaggeration: (heightExaggeration) => set({ heightExaggeration }),
   setRadiusExaggeration: (radiusExaggeration) => set({ radiusExaggeration }),
+  setShowVolcanoLabels: (showVolcanoLabels) => set({ showVolcanoLabels }),
 }));
