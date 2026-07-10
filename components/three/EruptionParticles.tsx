@@ -49,10 +49,13 @@ export function EruptionParticles({
   visualRef,
   height,
   radius,
+  color = '#777777',
 }: {
   visualRef: RefObject<VolcanoVisualState>;
   height: number;
   radius: number;
+  /** 噴煙色。海底火山は蒸気らしい白系を渡す */
+  color?: string;
 }) {
   const geometryRef = useRef<THREE.BufferGeometry>(null);
   const materialRef = useRef<THREE.PointsMaterial>(null);
@@ -118,7 +121,7 @@ export function EruptionParticles({
       </bufferGeometry>
       <pointsMaterial
         ref={materialRef}
-        color="#777777"
+        color={color}
         transparent
         opacity={0}
         depthWrite={false}

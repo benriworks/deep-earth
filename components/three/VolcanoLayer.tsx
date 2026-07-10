@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense, useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { EARTH_RADIUS_KM } from '@/lib/earthData';
 import { computeEruptionIntensity } from '@/lib/eruptionModel';
@@ -12,8 +13,14 @@ import { useLayerStore } from '@/stores/useLayerStore';
 import { useVolcanoStore } from '@/stores/useVolcanoStore';
 import type { VolcanoFeature, VolcanoVisualState } from '@/types/volcano';
 import { EruptionParticles } from './EruptionParticles';
+import { SubmarineWater } from './SubmarineWater';
 import { VolcanoFallback } from './VolcanoFallback';
 import { VolcanoModel } from './VolcanoModel';
+
+/** 火山名ラベルを出すカメラ距離としきい値 */
+const LABEL_MAX_DISTANCE = 2.2;
+const LABEL_FACING_DOT = 0.2;
+const LABEL_CHECK_INTERVAL = 0.25;
 
 const UP = new THREE.Vector3(0, 1, 0);
 const volcanoes = loadVolcanoes();
@@ -50,6 +57,7 @@ function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
   // スライダー操作は離散イベントなので reactive 購読でよい(毎フレーム値ではない)
   const heightExaggeration = useVolcanoStore((s) => s.heightExaggeration);
   const radiusExaggeration = useVolcanoStore((s) => s.radiusExaggeration);
+  const showVolcanoLabels = useVolcanoStore((s) => s.showVolcanoLabels);
   const transform = useVolcanoTransform(volcano, heightExaggeration, radiusExaggeration);
   const visualRef = useRef<VolcanoVisualState>({
     eruptionIntensity: volcano.activity.eruption,
@@ -57,11 +65,14 @@ function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
     pressure: volcano.activity.pressure,
     gas: volcano.activity.gas,
   });
+  // 近接時のみ火山名ラベルを出す。判定は 4Hz に間引き、変化時のみ setState
+  const [labelVisible, setLabelVisible] = useState(false);
+  const labelTimerRef = useRef(Math.random() * LABEL_CHECK_INTERVAL); // 判定タイミングを分散
 
   // debug override(パネルのスライダー)> マントル連動の計算値と activity.eruption の大きい方。
   // sampleMantleForVolcano で断面マントル対流(2D)の上昇流・温度を火山位置で読み取り、
   // computeEruptionIntensity で噴火強度に変換する(教育用の簡略化)。
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const debugIntensity = useVolcanoStore.getState().volcanoDebugIntensity;
     const sample = sampleMantleForVolcano(volcano);
     const computed = computeEruptionIntensity({
@@ -79,6 +90,17 @@ function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
       1.8,
       delta,
     );
+
+    labelTimerRef.current += delta;
+    if (labelTimerRef.current >= LABEL_CHECK_INTERVAL) {
+      labelTimerRef.current = 0;
+      const cameraPos = state.camera.position;
+      const near = cameraPos.distanceTo(transform.position) < LABEL_MAX_DISTANCE;
+      const facing =
+        transform.position.dot(cameraPos) / cameraPos.length() > LABEL_FACING_DOT;
+      const visible = near && facing;
+      if (visible !== labelVisible) setLabelVisible(visible);
+    }
   });
 
   return (
@@ -113,7 +135,22 @@ function VolcanoInstance({ volcano }: { volcano: VolcanoFeature }) {
         visualRef={visualRef}
         height={transform.height}
         radius={transform.radius}
+        color={volcano.type === 'submarine' ? '#dceef0' : undefined}
       />
+      {volcano.type === 'submarine' && <SubmarineWater radius={transform.radius} />}
+      {showVolcanoLabels && labelVisible && (
+        <Html
+          position={[0, transform.height * 1.6 + 0.03, 0]}
+          center
+          distanceFactor={2.5}
+          zIndexRange={[40, 0]}
+          className="pointer-events-none select-none"
+        >
+          <div className="whitespace-nowrap rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
+            {volcano.nameJa ?? volcano.name}
+          </div>
+        </Html>
+      )}
     </group>
   );
 }

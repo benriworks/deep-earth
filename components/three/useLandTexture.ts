@@ -2,45 +2,87 @@
 
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
-import { drawLandMask } from '@/lib/landTexture';
-import { decodeMultiPolygon, type TopoTopology } from '@/lib/topojsonLite';
+import {
+  applyTerrainNoise,
+  drawLandMask,
+  LAND_TEXTURE_COLORS,
+  ROUGHNESS_COLORS,
+} from '@/lib/landTexture';
+import { decodeMultiPolygon, type MultiPolygon, type TopoTopology } from '@/lib/topojsonLite';
 
-const TEXTURE_WIDTH = 2048;
-const TEXTURE_HEIGHT = 1024;
+const MAP_WIDTH = 2048;
+const MAP_HEIGHT = 1024;
+const ROUGH_WIDTH = 1024;
+const ROUGH_HEIGHT = 512;
+
+export interface LandTextures {
+  map: THREE.CanvasTexture;
+  /** 海=なめらか(光沢)/陸=マット の粗さマップ */
+  roughnessMap: THREE.CanvasTexture;
+}
+
+function makeCanvas(width: number, height: number): CanvasRenderingContext2D | null {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  return canvas.getContext('2d');
+}
+
+function toTexture(
+  ctx: CanvasRenderingContext2D,
+  colorSpace: THREE.ColorSpace,
+): THREE.CanvasTexture {
+  const texture = new THREE.CanvasTexture(ctx.canvas);
+  texture.flipY = false; // 描画式(lat+90)/180 と対。二重反転しないこと
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.colorSpace = colorSpace;
+  texture.anisotropy = 4;
+  texture.needsUpdate = true;
+  return texture;
+}
 
 /**
- * Natural Earth 由来の陸ポリゴン(public/geo/land-110m.topo.json)から
- * 陸海テクスチャを生成する。座標整合は lib/landTexture.ts の描画式が担い、
- * ここでは flipY=false との組で「片方だけ反転」の規約を守る(二重反転バグ防止)。
- * 読み込み完了まで null(その間は従来の単色表示)。
+ * Natural Earth 由来の陸ポリゴンから、色むら入りカラーマップと
+ * 海光沢用 roughnessMap を生成する。読み込み完了まで null(従来の単色表示)。
  */
-export function useLandTexture(): THREE.CanvasTexture | null {
-  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
+export function useLandTexture(): LandTextures | null {
+  const [textures, setTextures] = useState<LandTextures | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    let created: THREE.CanvasTexture | null = null;
+    let created: LandTextures | null = null;
 
     fetch('/geo/land-110m.topo.json')
       .then((res) => res.json())
       .then((topo: TopoTopology) => {
         if (cancelled) return;
-        const land = decodeMultiPolygon(topo, 'land');
-        const canvas = document.createElement('canvas');
-        canvas.width = TEXTURE_WIDTH;
-        canvas.height = TEXTURE_HEIGHT;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        drawLandMask(ctx, land, { width: TEXTURE_WIDTH, height: TEXTURE_HEIGHT });
+        const land: MultiPolygon = decodeMultiPolygon(topo, 'land');
 
-        created = new THREE.CanvasTexture(canvas);
-        created.flipY = false;
-        created.wrapS = THREE.RepeatWrapping;
-        created.wrapT = THREE.ClampToEdgeWrapping;
-        created.colorSpace = THREE.SRGBColorSpace;
-        created.anisotropy = 4;
-        created.needsUpdate = true;
-        setTexture(created);
+        const mapCtx = makeCanvas(MAP_WIDTH, MAP_HEIGHT);
+        const roughCtx = makeCanvas(ROUGH_WIDTH, ROUGH_HEIGHT);
+        if (!mapCtx || !roughCtx) return;
+
+        drawLandMask(mapCtx, land, {
+          width: MAP_WIDTH,
+          height: MAP_HEIGHT,
+          oceanColor: LAND_TEXTURE_COLORS.ocean,
+          landColor: LAND_TEXTURE_COLORS.land,
+        });
+        applyTerrainNoise(mapCtx, MAP_WIDTH, MAP_HEIGHT);
+
+        drawLandMask(roughCtx, land, {
+          width: ROUGH_WIDTH,
+          height: ROUGH_HEIGHT,
+          oceanColor: ROUGHNESS_COLORS.ocean,
+          landColor: ROUGHNESS_COLORS.land,
+        });
+
+        created = {
+          map: toTexture(mapCtx, THREE.SRGBColorSpace),
+          roughnessMap: toTexture(roughCtx, THREE.NoColorSpace),
+        };
+        setTextures(created);
       })
       .catch((error) => {
         console.warn('land texture load failed; falling back to flat color', error);
@@ -48,9 +90,10 @@ export function useLandTexture(): THREE.CanvasTexture | null {
 
     return () => {
       cancelled = true;
-      created?.dispose();
+      created?.map.dispose();
+      created?.roughnessMap.dispose();
     };
   }, []);
 
-  return texture;
+  return textures;
 }

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { pointInLand, projectToPixel } from '@/lib/landTexture';
+import { pointInLand, projectToPixel, valueNoise2D } from '@/lib/landTexture';
 import { decodeMultiPolygon, type TopoTopology } from '@/lib/topojsonLite';
 
 const topo = JSON.parse(
@@ -74,5 +74,37 @@ describe('projectToPixel(UV 整合式)', () => {
     const [xEast] = projectToPixel(179.9, 0, W, H);
     const [xWest] = projectToPixel(-179.9, 0, W, H);
     expect(Math.abs(xEast - xWest)).toBeLessThan(W * 0.002);
+  });
+});
+
+describe('valueNoise2D(色むら用ノイズ)', () => {
+  it('決定論的(同じ入力は同じ出力)で 0..1 の範囲に収まる', () => {
+    for (let i = 0; i < 200; i++) {
+      const x = i * 0.37;
+      const y = i * 1.13;
+      const a = valueNoise2D(x, y, 7);
+      const b = valueNoise2D(x, y, 7);
+      expect(a).toBe(b);
+      expect(a).toBeGreaterThanOrEqual(0);
+      expect(a).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('シードが違えば異なるパターンになる', () => {
+    let different = 0;
+    for (let i = 0; i < 50; i++) {
+      if (valueNoise2D(i * 0.7, i * 0.3, 1) !== valueNoise2D(i * 0.7, i * 0.3, 2)) {
+        different++;
+      }
+    }
+    expect(different).toBeGreaterThan(40);
+  });
+
+  it('滑らか(隣接サンプルの差が小さい)', () => {
+    for (let i = 0; i < 100; i++) {
+      const x = i * 0.51;
+      const diff = Math.abs(valueNoise2D(x, 3.3, 5) - valueNoise2D(x + 0.02, 3.3, 5));
+      expect(diff).toBeLessThan(0.1);
+    }
   });
 });

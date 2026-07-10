@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stats } from '@react-three/drei';
+import { OrbitControls, Stars, Stats } from '@react-three/drei';
+import { Atmosphere } from './Atmosphere';
 import { EarthLayers } from './EarthLayers';
 import { VolcanoLayer } from './VolcanoLayer';
 import { Probe } from './Probe';
@@ -39,7 +40,9 @@ export default function SceneRoot() {
         <ambientLight intensity={0.7} />
         <directionalLight position={[5, 3, 5]} intensity={1.2} />
         <directionalLight position={[-4, -2, -4]} intensity={0.3} />
+        <Stars radius={50} depth={20} count={2500} factor={3} fade speed={0} />
         <EarthLayers />
+        <Atmosphere />
         <VolcanoLayer />
         <Probe />
         <SeismicWaves />

@@ -64,6 +64,12 @@ function VolcanoGLTF({
     cloned.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return;
 
+      // 台座の円形パッチは地球面と馴染まないため非表示(山体を地表に直接載せる)
+      if (object.name.includes('BaseTerrain')) {
+        object.visible = false;
+        return;
+      }
+
       object.geometry = object.geometry.clone();
       const materials = Array.isArray(object.material) ? object.material : [object.material];
       const clonedMaterials = materials.map((material) => {

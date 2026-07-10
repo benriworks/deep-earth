@@ -27,7 +27,7 @@ export function EarthLayers() {
   const { planes, clipIntersection, openDirection } = useCutPlanes(cutMode, cutAngleDeg);
   const cutAngleRad = (cutAngleDeg * Math.PI) / 180;
   // 実地理の陸海テクスチャ(読み込み中は null → 従来の単色)。地殻シェルのみに貼る
-  const landTexture = useLandTexture();
+  const landTextures = useLandTexture();
 
   return (
     <group>
@@ -42,7 +42,8 @@ export function EarthLayers() {
             planes={planes}
             clipIntersection={clipIntersection}
             exaggerate={exaggerate}
-            map={layer.id === 'crust' ? landTexture : null}
+            map={layer.id === 'crust' ? (landTextures?.map ?? null) : null}
+            roughnessMap={layer.id === 'crust' ? (landTextures?.roughnessMap ?? null) : null}
           />
         );
       })}
@@ -79,6 +80,7 @@ function LayerShell({
   clipIntersection,
   exaggerate,
   map = null,
+  roughnessMap = null,
 }: {
   layer: EarthLayer;
   opacity: number;
@@ -87,6 +89,8 @@ function LayerShell({
   exaggerate: boolean;
   /** 陸海テクスチャ(地殻のみ)。適用時は乗算で濁らないよう color を白にする */
   map?: THREE.Texture | null;
+  /** 海=光沢/陸=マット の粗さマップ(地殻のみ) */
+  roughnessMap?: THREE.Texture | null;
 }) {
   const radius = toSceneRadius(displayRadiiKm(layer, exaggerate).outerKm);
   const transparent = opacity < 1;
@@ -111,8 +115,9 @@ function LayerShell({
       <meshStandardMaterial
         key={map ? 'land-textured' : 'plain'} // map 追加時のシェーダ再コンパイルを確実にする
         map={map ?? undefined}
+        roughnessMap={roughnessMap ?? undefined}
         color={map ? '#ffffff' : layer.color}
-        roughness={0.85}
+        roughness={roughnessMap ? 1 : 0.85}
         metalness={0.05}
         side={THREE.DoubleSide}
         clippingPlanes={planes}
