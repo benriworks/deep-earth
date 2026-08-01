@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import ShareOnX from '@/components/ShareOnX';
 
 export default function Home() {
   return (
@@ -20,6 +21,10 @@ export default function Home() {
       <p className="max-w-md text-xs text-slate-500">
         PREM(予備的基準地球モデル)近似の科学データに基づく教育用シミュレータ
       </p>
+      <div className="mt-4 flex flex-col items-center gap-3 border-t border-slate-800 pt-8">
+        <p className="text-xs text-slate-500">授業や自由研究で使えそうな方に共有できます。</p>
+        <ShareOnX />
+      </div>
     </div>
   );
 }
