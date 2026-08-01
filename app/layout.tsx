@@ -25,8 +25,11 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: { canonical: '/' },
-  openGraph: { type: 'website', title, description, url: '/', siteName: 'BenriWorks', locale: 'ja_JP' },
-  twitter: { card: 'summary_large_image', title, description },
+  openGraph: {
+    type: 'website', title, description, url: '/', siteName: 'BenriWorks', locale: 'ja_JP',
+    images: [{ url: '/ogp.png', width: 1200, height: 630, alt: '地球地下シミュレータ — 足元から地球の中心まで、深さの感覚をつかむ' }],
+  },
+  twitter: { card: 'summary_large_image', title, description, images: ['/ogp.png'] },
 };
 
 const structuredData = {
