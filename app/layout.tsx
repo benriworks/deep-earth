@@ -22,7 +22,7 @@ export const viewport: Viewport = { themeColor: '#020617', colorScheme: 'dark' }
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title,
+  title: { default: title, template: '%s | 地球地下シミュレータ' },
   description,
   alternates: { canonical: '/' },
   openGraph: {
@@ -30,25 +30,6 @@ export const metadata: Metadata = {
     images: [{ url: '/ogp.png', width: 1200, height: 630, alt: '地球地下シミュレータ — 足元から地球の中心まで、深さの感覚をつかむ' }],
   },
   twitter: { card: 'summary_large_image', title, description, images: ['/ogp.png'] },
-};
-
-const structuredData = {
-  '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: '地球地下シミュレータ',
-  url: `${siteUrl}/`,
-  description,
-  applicationCategory: 'EducationalApplication',
-  operatingSystem: 'Web',
-  inLanguage: 'ja',
-  isAccessibleForFree: true,
-  offers: { '@type': 'Offer', price: '0', priceCurrency: 'JPY' },
-  publisher: {
-    '@type': 'Organization',
-    '@id': 'https://benriwork.jp/#organization',
-    name: 'BenriWorks',
-    url: 'https://benriwork.jp/',
-  },
 };
 
 export default function RootLayout({
@@ -59,9 +40,6 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Script id="webapp-jsonld" type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </Script>
         <Script defer src="/_vercel/insights/script.js" strategy="afterInteractive" />
         {children}
         <footer className="border-t border-slate-800 bg-slate-950 px-4 py-6 text-center text-xs text-slate-400">
@@ -71,6 +49,9 @@ export default function RootLayout({
             </a>
             <a href="https://benriwork.jp/products/" className="underline">
               他のプロダクトを見る
+            </a>
+            <a href="https://benriwork.jp/blog/" className="underline">
+              開発ブログ
             </a>
           </nav>
         </footer>
